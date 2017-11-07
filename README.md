@@ -1,6 +1,6 @@
 # JFConfig
 
-#### Create and validate a configuration object from YAML with inheritance, imports and overrides by external configuration file, system properties and environment variables.
+#### Create and validate configuration objects from YAML with inheritance, imports and overrides by external configuration file, system properties and environment variables
 
 ## Standalone - 1 line configuration
 
@@ -18,7 +18,7 @@ class MyAppCfg {
     
     @NotNull
     @Valid
-    MyCredentials myCerdentials
+    MyCredentials myCredentials
     
     @Valid
     MyCredentials otherOptionalCredentials
@@ -37,9 +37,9 @@ class MyCredentials {
 }
 ```
 
-###### config/production.groovy
+###### config/production.yml
 ```yaml
-----------
+---
 applicationName: Demo Application
 myCredentials:
   username: ${MYAPP_USERNAME:-demoUser}
