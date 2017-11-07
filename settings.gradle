@@ -1,0 +1,6 @@
+rootProject.name='justConf'
+
+include 'jfconfig'
+include 'dwtests'
+include 'dwtests:120'
+include 'dwtests:114'

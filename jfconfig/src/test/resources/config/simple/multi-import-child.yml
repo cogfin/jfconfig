@@ -1,0 +1,4 @@
+---
+inherits: config/simple/multi-import-parent.yml
+get: config/simple/multi-import-child-import.yml
+property1: value1

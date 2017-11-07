@@ -1,0 +1,3 @@
+com.energizedwork.justConf.testSupport.objectStore.DbObjectStoreFactory
+com.energizedwork.justConf.testSupport.objectStore.FilesystemObjectStoreFactory
+com.energizedwork.justConf.testSupport.objectStore.S3ObjectStoreFactory

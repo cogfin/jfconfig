@@ -1,0 +1,6 @@
+---
+notNullProperty: value2
+notBlankProperty: value3
+notNullOrBlankProperty: value4
+ignoredProperty: value5
+property1: imported value will be ignored as already set

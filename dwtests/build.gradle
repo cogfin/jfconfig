@@ -1,0 +1,7 @@
+
+
+ext.commonTestSource = "${projectDir.absolutePath}/src/test/groovy"
+
+subprojects {
+    apply plugin: 'groovy'
+}

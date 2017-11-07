@@ -1,0 +1,5 @@
+---
+notNullProperty: value2
+notBlankProperty: value3
+notNullOrBlankProperty: value4
+ignoredProperty: value5

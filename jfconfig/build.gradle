@@ -1,0 +1,136 @@
+import com.amazonaws.auth.*
+import com.amazonaws.auth.profile.*
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.amazonaws:aws-java-sdk-core:1.11.224'
+    }
+}
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+apply plugin: 'java-library'
+apply plugin: 'maven'
+apply plugin: 'groovy'
+
+
+dependencyManagement {
+    imports {
+        mavenBom "io.dropwizard:dropwizard-bom:1.1.4"
+    }
+}
+
+def fetchAwsCredentials = {
+    try {
+        return new ProfileCredentialsProvider().credentials
+    } catch (Exception e) {
+        logger.debug('Unable to retrieve AWS credentials from profile, publishing to S3 will not be available.', e)
+        return null
+    }
+}
+
+AWSCredentials awsCredentials = fetchAwsCredentials()
+
+configurations {
+    compiledTests
+//    javadoc
+//    sources
+//    shadow
+}
+
+dependencies {
+    api 'io.dropwizard:dropwizard-configuration'
+    api 'io.dropwizard:dropwizard-jackson'
+    api 'io.dropwizard:dropwizard-jersey'
+    api 'javax.validation:validation-api:1.1.0.Final'
+
+    testImplementation 'org.codehaus.groovy:groovy-all:2.4.12'
+    testImplementation 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testImplementation 'io.dropwizard:dropwizard-core'
+}
+
+// this is for DW tests not mvn central!
+task compiledTestsJar(type: Jar) {
+    classifier = 'tests' // clasifier needs to be unique if going to pom
+    from sourceSets.test.output
+}
+
+// for mvn central
+//task sourcesJar(type: Jar) {
+//    classifier = 'sources'
+//    from sourceSets.main.java
+//}
+
+// for mvn central
+//task javadocJar(type: Jar, dependsOn: ['javadoc']) {
+//    classifier = 'javadoc'
+//    from "${project.docsDir}/javadoc"
+//}
+
+artifacts {
+    compiledTests compiledTestsJar
+}
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+install {
+    repositories {
+        mavenDeployer {
+            repository(url: 'file:///tmp/testRepo/releases/')
+            snapshotRepository(url: 'file:///tmp/testRepo/snapshots/')
+            pom.project {
+                licenses {
+                    license {
+                        name 'The MIT License'
+                        url 'http://www.opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: 's3://pm-maven-repo/releases/')
+            credentials(AwsCredentials) {
+                accessKey = awsCredentials.AWSAccessKeyId
+                secretKey = awsCredentials.AWSSecretKey
+            }
+            snapshotRepository(url: 'file:///tmp/testRepo/snapshots/')
+            pom.project {
+                licenses {
+                    license {
+                        name 'The MIT License'
+                        url 'http://www.opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+task doc(type: Javadoc) {
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.output + sourceSets.main.compileClasspath
+    options {
+        windowTitle = 'JFConfig Javadoc'
+        linksOffline 'http://docs.oracle.com/javase/8/docs/api/', 'src/doc/javadoc-packages/jdk/'
+        linksOffline 'https://docs.oracle.com/javaee/7/api/', 'src/doc/javadoc-packages/jee/'
+        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-configuration/apidocs/', 'src/doc/javadoc-packages/dropwizard-configuration/'
+        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-jackson/apidocs/', 'src/doc/javadoc-packages/dropwizard-jackson/'
+        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-jersey/apidocs/', 'src/doc/javadoc-packages/dropwizard-jersey/'
+        linksOffline 'https://fasterxml.github.io/jackson-databind/javadoc/2.7/', 'src/doc/javadoc-packages/jackson/'
+    }
+}

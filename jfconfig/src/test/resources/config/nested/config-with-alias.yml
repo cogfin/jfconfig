@@ -1,0 +1,6 @@
+inherits: config/nested/parent-with-anchor.yml
+someOtherStuff: *ISF
+
+thirdPartyConfiguration:
+  aThing: &ta Thing A
+  anotherThing: String alias no good :-(

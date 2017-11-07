@@ -1,0 +1,17 @@
+---
+imageStoreFactory:
+  type: filesystem
+  directory: /var/images
+
+someOtherStuff:
+  type: s3
+  accessKey: myAccessKey
+  # add test with this a req'd env var
+  secret: mySecret
+  endpoint: an-endpoint
+  bucket: otherStuff
+
+thirdPartyConfiguration:
+  aThing: Thing A
+  anotherThing: Thing B
+

@@ -1,0 +1,7 @@
+imageStoreFactory: &ISF
+  id: ISF
+  type: s3
+  accessKey: myAccessKey
+  secret: mySecret
+  endpoint: an-endpoint
+  bucket: otherStuff

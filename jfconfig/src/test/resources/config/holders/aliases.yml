@@ -1,0 +1,19 @@
+imageStoreFactory: &isf
+  id: isf # jackson yaml anchor impl a bit shit!
+  factory:
+    type: filesystem
+    directory: /var/images
+
+someOtherStuff: *isf
+
+thirdPartyConfiguration:
+  aThing: Thing A
+  anotherThing: Thing B
+
+component:
+  widgetStoreFactory:
+    type: database
+    url: db-url
+    username: myUser
+    password: myPassword
+    table: widgets

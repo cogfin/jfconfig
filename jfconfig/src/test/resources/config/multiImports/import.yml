@@ -1,0 +1,6 @@
+---
+property1: value1
+import:
+  - config/multiImports/imported1.yml
+  - config/multiImports/imported2.yml
+  - config/multiImports/imported3.yml
