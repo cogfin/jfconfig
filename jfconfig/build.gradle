@@ -16,6 +16,7 @@ plugins {
 
 apply plugin: 'java-library'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'groovy'
 
 
@@ -38,8 +39,8 @@ AWSCredentials awsCredentials = fetchAwsCredentials()
 
 configurations {
     compiledTests
-//    javadoc
-//    sources
+    javadocs
+    sources
 //    shadow
 }
 
@@ -54,26 +55,40 @@ dependencies {
     testImplementation 'io.dropwizard:dropwizard-core'
 }
 
+task doc(type: Javadoc) {
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.output + sourceSets.main.compileClasspath
+    options {
+        windowTitle = 'JFConfig Javadoc'
+        linksOffline 'http://docs.oracle.com/javase/8/docs/api/', 'src/doc/javadoc-packages/jdk/'
+        linksOffline 'https://docs.oracle.com/javaee/7/api/', 'src/doc/javadoc-packages/jee/'
+        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-configuration/apidocs/', 'src/doc/javadoc-packages/dropwizard-configuration/'
+        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-jackson/apidocs/', 'src/doc/javadoc-packages/dropwizard-jackson/'
+        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-jersey/apidocs/', 'src/doc/javadoc-packages/dropwizard-jersey/'
+        linksOffline 'https://fasterxml.github.io/jackson-databind/javadoc/2.7/', 'src/doc/javadoc-packages/jackson/'
+    }
+}
+
 // this is for DW tests not mvn central!
 task compiledTestsJar(type: Jar) {
-    classifier = 'tests' // clasifier needs to be unique if going to pom
+    classifier = 'test-classes'
     from sourceSets.test.output
 }
 
-// for mvn central
-//task sourcesJar(type: Jar) {
-//    classifier = 'sources'
-//    from sourceSets.main.java
-//}
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.java
+}
 
-// for mvn central
-//task javadocJar(type: Jar, dependsOn: ['javadoc']) {
-//    classifier = 'javadoc'
-//    from "${project.docsDir}/javadoc"
-//}
+task javadocsJar(type: Jar, dependsOn: ['doc']) {
+    classifier = 'javadoc'
+    from doc.destinationDir
+}
 
 artifacts {
     compiledTests compiledTestsJar
+    javadocs javadocsJar
+    sources sourcesJar
 }
 
 shadowJar {
@@ -101,11 +116,7 @@ install {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: 's3://pm-maven-repo/releases/')
-            credentials(AwsCredentials) {
-                accessKey = awsCredentials.AWSAccessKeyId
-                secretKey = awsCredentials.AWSSecretKey
-            }
+            repository(url: 'file:///tmp/testRepo/releases/')
             snapshotRepository(url: 'file:///tmp/testRepo/snapshots/')
             pom.project {
                 licenses {
@@ -118,19 +129,27 @@ uploadArchives {
             }
         }
     }
-
 }
 
-task doc(type: Javadoc) {
-    source = sourceSets.main.allJava
-    classpath = sourceSets.main.output + sourceSets.main.compileClasspath
-    options {
-        windowTitle = 'JFConfig Javadoc'
-        linksOffline 'http://docs.oracle.com/javase/8/docs/api/', 'src/doc/javadoc-packages/jdk/'
-        linksOffline 'https://docs.oracle.com/javaee/7/api/', 'src/doc/javadoc-packages/jee/'
-        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-configuration/apidocs/', 'src/doc/javadoc-packages/dropwizard-configuration/'
-        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-jackson/apidocs/', 'src/doc/javadoc-packages/dropwizard-jackson/'
-        linksOffline 'http://www.dropwizard.io/1.2.0/dropwizard-jersey/apidocs/', 'src/doc/javadoc-packages/dropwizard-jersey/'
-        linksOffline 'https://fasterxml.github.io/jackson-databind/javadoc/2.7/', 'src/doc/javadoc-packages/jackson/'
+publishing {
+    repositories {
+        maven {
+//            url "file:///tmp/testPublishRepo/${version.contains('SNAPSHOT') ? 'snapshots' : 'relseases'}/"
+            url "s3://pm-maven-repo/${version.contains('SNAPSHOT') ? 'snapshots' : 'relseases'}/"
+            credentials(AwsCredentials) {
+                accessKey = awsCredentials.AWSAccessKeyId
+                secretKey = awsCredentials.AWSSecretKey
+            }
+        }
+    }
+    publications {
+        sources(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+        }
+        javadoc(MavenPublication) {
+            from components.java
+            artifact javadocsJar
+        }
     }
 }
