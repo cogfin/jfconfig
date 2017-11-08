@@ -3,12 +3,12 @@ plugins {
     id 'build-dashboard'
 }
 
-group = 'com.energizedwork.justConf'
+group = 'com.energizedwork'
 
 subprojects {
     apply plugin: 'io.spring.dependency-management'
 
-    group = 'com.energizedwork.justConf'
+    group = 'com.energizedwork'
 
     repositories {
         jcenter()

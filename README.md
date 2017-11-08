@@ -49,7 +49,7 @@ myCredentials:
 ###### build.gradle
 ```gradle
 dependencies {
-    compile 'com.energizedwork.justConf:jfconfig:1.x.y'
+    compile 'com.energizedwork:jfconfig:1.x.y'
     
     ....
 }
