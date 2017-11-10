@@ -15,10 +15,7 @@ import javax.validation.Validator;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.fasterxml.jackson.dataformat.yaml.YAMLFactory.FORMAT_NAME_YAML;
 import static java.util.Objects.requireNonNull;
@@ -30,6 +27,8 @@ import static java.util.Objects.requireNonNull;
  * @param <T> the class that will be configured
  */
 public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
+
+    public static final String IMPORT_LOCATION = "location";
 
     final Logger log = LoggerFactory.getLogger(DWConfigFactory.class);
     final String parentKey;
@@ -121,23 +120,23 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
     ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode) throws DWConfigFactoryException {
         if (importNode.isTextual() && importNode.asText() != null) {
             return mergeAndReturnDest(importer, readTree(sourceProvider, importNode.asText()));
-        } else if (importNode.isObject() && importNode.get("location") != null && importNode.get("location").isTextual()) {
+        } else if (importNode.isObject() && importNode.get(IMPORT_LOCATION) != null && importNode.get(IMPORT_LOCATION).isTextual()) {
             JsonNode optionalNode = importNode.get("optional");
             if (optionalNode != null && optionalNode.isBoolean() && optionalNode.asBoolean()) {
-                return importOptionalConfig(sourceProvider, importer, importNode);
+                return importOptionalConfig(sourceProvider, importer, importNode.get(IMPORT_LOCATION));
             } else {
-                return mergeFromImportNode(sourceProvider, importer, importNode.get("location"));
+                return mergeFromImportNode(sourceProvider, importer, importNode.get(IMPORT_LOCATION));
             }
         } else {
             return importer;
         }
     }
 
-    private ObjectNode importOptionalConfig(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode) {
+    private ObjectNode importOptionalConfig(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode locationNode) {
         try {
-            return mergeFromImportNode(sourceProvider, importer, importNode.get("location"));
-        } catch (DWConfigFactoryException e) {
-            log.debug("Failed to read optional config {}", importNode.get("location").asText(), e);
+            return mergeFromImportNode(sourceProvider, importer, locationNode);
+        } catch (Exception e) {
+            log.debug("Failed to read optional config {}", locationNode.asText(), e);
             return importer;
         }
     }
@@ -168,12 +167,16 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         try {
             configIs = sourceProvider.open(path);
         } catch (Exception e) {
-            throw new DWConfigFactoryException("Failed to open config file", path, configPaths, e);
+            throw new DWConfigFactoryException("Failed to open config file", path, addIfNotAlreadyAdded(configPaths, path), e);
         }
         try {
-            return mapper.readTree(createParser(configIs));
+            ObjectNode on = mapper.readTree(createParser(configIs));
+            if (on == null) {
+                throw new DWConfigFactoryException("Failed to read config file", path, addIfNotAlreadyAdded(configPaths, path));
+            }
+            return on;
         } catch (IOException e) {
-            throw new DWConfigFactoryException(path, configPaths, e);
+            throw new DWConfigFactoryException(path, addIfNotAlreadyAdded(configPaths, path), e);
         } finally {
             try {
                 configIs.close();
@@ -202,6 +205,16 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
                 }
             }
         }
+    }
+
+    private static List<String> addIfNotAlreadyAdded(List<String> source, String newPath) {
+        if (source.get(source.size() - 1).equals(newPath)) {
+            return source;
+        }
+        List<String> newList = new LinkedList<String>();
+        newList.addAll(source);
+        newList.add(newPath);
+        return newList;
     }
 
     static class DWConfigFactoryException extends ConfigurationException {
