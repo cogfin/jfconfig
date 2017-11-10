@@ -177,7 +177,7 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         } finally {
             try {
                 configIs.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.debug("Closing input stream from " + path, e);
             }
         }
