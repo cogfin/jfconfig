@@ -203,17 +203,80 @@ public class JFConfig {
      *     Convenience method for printing fully resolved configurations once they have been loaded
      * </p>
      *
-     * @param configuration an object to serialize
      * @param out the outputStream to write the serialized object
+     * @param configuration an object to serialize
      */
-    public static void printConfig(Object configuration, OutputStream out) {
-        YAMLFactory factory = new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
-        ObjectMapper om = new ObjectMapper(factory);
+    public static void printConfig(OutputStream out, Object configuration) {
         try {
-            om.writerWithDefaultPrettyPrinter().writeValue(out, configuration);
+            createYamlObjectMapper().writerWithDefaultPrettyPrinter().writeValue(out, configuration);
         } catch (Exception e) {
             throw new JFConfigException("Failed to serialize configuration", e);
         }
+    }
+
+    /**
+     * print a resolved configuration before it is mapped to a configuration object and validated
+     *
+     * <p>
+     *     When using env var substitution for configuration, calling this without the substitution source provider will
+     *     display the env vars that would get replaced.
+     * </p>
+     *
+     * @param out the outputStream to write the raw config
+     * @param sourceProvider the source provider used to retrieve the configuration from the configLocation
+     * @param configLocation the location of the configuration (which will be understood by the configurationSourceProvider)
+     */
+    public static void printConfigTree(OutputStream out, ConfigurationSourceProvider sourceProvider, String configLocation) {
+        printConfigTree(out, sourceProvider, configLocation, DEFAULT_PARENT_KEY, DEFAULT_IMPORT_KEY, null);
+    }
+
+    /**
+     * print a resolved configuration before it is mapped to a configuration object and validated
+     *
+     * <p>
+     *     When using env var substitution for configuration, calling this without the substitution source provider will
+     *     display the env vars that would get replaced.
+     * </p>
+     *
+     * @param out the outputStream to write the raw config
+     * @param sourceProvider the source provider used to retrieve the configuration from the configLocation
+     * @param configLocation the location of the configuration (which will be understood by the configurationSourceProvider)
+     * @param parentKey the key in the yaml document to identify a parent configuration
+     * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
+     */
+    public static void printConfigTree(OutputStream out, ConfigurationSourceProvider sourceProvider, String configLocation, String parentKey, String importKey) {
+        printConfigTree(out, sourceProvider, configLocation, parentKey, importKey, null);
+    }
+
+    /**
+     * print a resolved configuration before it is mapped to a configuration object and validated
+     *
+     * <p>
+     *     When using env var substitution for configuration, calling this without the substitution source provider will
+     *     display the env vars that would get replaced.
+     * </p>
+     *
+     * @param out the outputStream to write the raw config
+     * @param sourceProvider the source provider used to retrieve the configuration from the configLocation
+     * @param configLocation the location of the configuration (which will be understood by the configurationSourceProvider)
+     * @param parentKey the key in the yaml document to identify a parent configuration
+     * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
+     * @param externalConfigFile an optional external configuration file for overrides
+     */
+    @SuppressWarnings("unchecked")
+    public static void printConfigTree(OutputStream out, ConfigurationSourceProvider sourceProvider, String configLocation, String parentKey, String importKey, File externalConfigFile) {
+        try {
+            DWConfigFactoryFactory<Object> factoryFactory = new DWConfigFactoryFactory<Object>(parentKey, importKey, externalConfigFile);
+            DWConfigFactory factory = (DWConfigFactory) factoryFactory.create(Object.class, newValidatorFactory().getValidator(), newObjectMapper(), "N/A");
+            createYamlObjectMapper().writerWithDefaultPrettyPrinter().writeValue(out, factory.buildTree(sourceProvider, configLocation));
+        } catch (Exception e) {
+            throw new JFConfigException(e);
+        }
+    }
+
+    private static ObjectMapper createYamlObjectMapper() {
+        YAMLFactory factory = new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
+        return new ObjectMapper(factory);
     }
 
     private JFConfig() {}

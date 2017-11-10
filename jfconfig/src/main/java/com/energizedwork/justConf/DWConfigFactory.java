@@ -71,6 +71,10 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
      */
     @Override
     public T build(ConfigurationSourceProvider provider, String path) throws IOException, ConfigurationException {
+        return super.build(buildTree(provider, path), path);
+    }
+
+    ObjectNode buildTree(ConfigurationSourceProvider provider, String path) throws IOException, ConfigurationException {
         ObjectNode externalConfig = null;
         if (externalConfigFile != null) {
             String externalPath = externalConfigFile.getCanonicalPath();
@@ -88,7 +92,7 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         if (externalConfig != null) {
             merge(externalConfig, topConfigNode);
         }
-        return build(mergeParents(provider, topConfigNode), path);
+        return mergeParents(provider, topConfigNode);
     }
 
     private ObjectNode importFromProvider(ConfigurationSourceProvider sourceProvider, ObjectNode importer) throws DWConfigFactoryException {
