@@ -81,12 +81,24 @@ abstract class InheritanceConfigurationSpec extends Specification {
         config.ignoredProperty == null
     }
 
-    def "can import will not override existing entries in the config"() {
+    def "import will not override existing entries in the config"() {
         given:
         SimpleConfigObject config = getConfiguration(SimpleConfigObject, "config/simple/import-does-not-override.yml", "import")
 
         expect:
         config.property1 == 'value1'
+    }
+
+    @Unroll
+    def "single import can be made optional - import file #importFile"() {
+        given:
+        SimpleConfigObject config = getConfiguration(SimpleConfigObject, "config/simple/import-optional-file-${importFile}.yml", "import")
+
+        expect:
+        config.property1 == 'value1'
+
+        where:
+        importFile << ['exists', 'missing']
     }
 
     def "Sensible message when fail to open top level config file"() {
@@ -121,6 +133,42 @@ abstract class InheritanceConfigurationSpec extends Specification {
         where:
         configPath = 'config/simple/inherits-parent-missing.yml'
         missingConfig = 'config/simple/missing-parent.yml'
+    }
+
+    def "Sensible message when fail to open imported config"() {
+        def error = captureSysError()
+
+        when:
+        getConfiguration(SimpleConfigObject, configPath, 'import')
+
+        then:
+        thrown Exception
+        String errorOut = error.toString()
+        errorOut.contains('Failed to open')
+        errorOut.contains(configPath)
+        errorOut.contains(missingConfig)
+
+        where:
+        configPath = 'config/simple/import-missing-file.yml'
+        missingConfig = 'config/simple/missing-import-file.yml'
+    }
+
+    def "Sensible message when fail to open imported config from map import"() {
+        def error = captureSysError()
+
+        when:
+        getConfiguration(SimpleConfigObject, configPath, 'import')
+
+        then:
+        thrown Exception
+        String errorOut = error.toString()
+        errorOut.contains('Failed to open')
+        errorOut.contains(configPath)
+        errorOut.contains(missingConfig)
+
+        where:
+        configPath = 'config/simple/import-missing-file-map.yml'
+        missingConfig = 'config/simple/missing-import-file.yml'
     }
 
     def "can load a simple config with inheritance"() {

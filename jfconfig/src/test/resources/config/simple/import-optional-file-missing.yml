@@ -1,0 +1,8 @@
+---
+property1: value1
+import:
+  location: config/simple/this-file-does-not-exist.yml
+  optional: true
+notNullProperty: n/a
+notBlankProperty: n/a
+notNullOrBlankProperty: n/a

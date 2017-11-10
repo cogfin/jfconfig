@@ -137,8 +137,8 @@ publishing {
 //            url "file:///tmp/testPublishRepo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
             url "s3://pm-maven-repo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
             credentials(AwsCredentials) {
-                accessKey = awsCredentials.AWSAccessKeyId
-                secretKey = awsCredentials.AWSSecretKey
+                accessKey = awsCredentials?.AWSAccessKeyId
+                secretKey = awsCredentials?.AWSSecretKey
             }
         }
     }

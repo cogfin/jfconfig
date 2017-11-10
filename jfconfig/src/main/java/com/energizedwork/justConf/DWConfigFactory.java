@@ -99,23 +99,45 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         if (importKey == null) {
             return importer;
         }
-        JsonNode importPathNode = importer.remove(importKey);
-        if (importPathNode == null) {
+        JsonNode importNode = importer.remove(importKey);
+        if (importNode == null) {
             return importer;
         }
-        if (importPathNode.isTextual() && importPathNode.asText() != null) {
-            return mergeAndReturnDest(importer, readTree(sourceProvider, importPathNode.asText()));
-        } else if (importPathNode.isArray()) {
-            Iterator<JsonNode> it = importPathNode.elements();
+        if (importNode.isTextual() || importNode.isObject()) {
+            return mergeFromImportNode(sourceProvider, importer, importNode);
+        } else if (importNode.isArray()) {
+            Iterator<JsonNode> it = importNode.elements();
             ObjectNode merging = importer;
             while (it.hasNext()) {
                 JsonNode jn = it.next();
-                if (jn.isTextual()) {
-                    merging = mergeAndReturnDest(merging, readTree(sourceProvider, jn.asText()));
-                }
+                merging = mergeFromImportNode(sourceProvider, merging, jn);
             }
             return merging;
         } else {
+            return importer;
+        }
+    }
+
+    ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode) throws DWConfigFactoryException {
+        if (importNode.isTextual() && importNode.asText() != null) {
+            return mergeAndReturnDest(importer, readTree(sourceProvider, importNode.asText()));
+        } else if (importNode.isObject() && importNode.get("location") != null && importNode.get("location").isTextual()) {
+            JsonNode optionalNode = importNode.get("optional");
+            if (optionalNode != null && optionalNode.isBoolean() && optionalNode.asBoolean()) {
+                return importOptionalConfig(sourceProvider, importer, importNode);
+            } else {
+                return mergeFromImportNode(sourceProvider, importer, importNode.get("location"));
+            }
+        } else {
+            return importer;
+        }
+    }
+
+    private ObjectNode importOptionalConfig(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode) {
+        try {
+            return mergeFromImportNode(sourceProvider, importer, importNode.get("location"));
+        } catch (DWConfigFactoryException e) {
+            log.debug("Failed to read optional config {}", importNode.get("location").asText(), e);
             return importer;
         }
     }

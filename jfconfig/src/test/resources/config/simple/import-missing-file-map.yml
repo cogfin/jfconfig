@@ -1,0 +1,6 @@
+---
+import:
+  location: config/simple/missing-import-file.yml
+notBlankProperty: value3
+notNullOrBlankProperty: value4
+ignoredProperty: value5

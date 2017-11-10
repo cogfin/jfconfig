@@ -1,0 +1,7 @@
+---
+import:
+  location: config/simple/import-optional-file-optional-file.yml
+  optional: true
+notNullProperty: n/a
+notBlankProperty: n/a
+notNullOrBlankProperty: n/a
