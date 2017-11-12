@@ -61,7 +61,7 @@ dependencies {
 ```groovy
 void initialize(Bootstrap<T> bootstrap) {
     super.initialize(bootstrap)
-    bootstrap.setConfigurationFactoryFactory(new DWConfigFactoryFactory<T>('inherits', 'import'))
+    bootstrap.setConfigurationFactoryFactory(new DWConfigFactoryFactory<T>('inherits', 'import', 'dw'))
     bootstrap.setConfigurationSourceProvider(JFConfig.createEnvVarSubstitutingClasspathSourceProvider())
 
     ...
@@ -74,7 +74,7 @@ The above is equivalent to:
 ```groovy
 void initialize(Bootstrap<T> bootstrap) {
     super.initialize(bootstrap)
-    bootstrap.setConfigurationFactoryFactory(new DWConfigFactoryFactory<T>('inherits', 'import'))
+    bootstrap.setConfigurationFactoryFactory(new DWConfigFactoryFactory<T>('inherits', 'import', 'dw'))
     bootstrap.setConfigurationSourceProvider(
         new SubstitutingSourceProvider(
             new ResourceConfigurationSourceProvider(),

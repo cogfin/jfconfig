@@ -28,7 +28,15 @@ import static java.util.Objects.requireNonNull;
  */
 public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
 
-    public static final String IMPORT_LOCATION = "location";
+    /**
+     * {@value}
+     */
+    public static final String IMPORT_KEY_LOCATION = "location";
+
+    /**
+     * {@value}
+     */
+    public static final String IMPORT_KEY_OPTIONAL = "optional";
 
     final Logger log = LoggerFactory.getLogger(DWConfigFactory.class);
     final String parentKey;
@@ -73,7 +81,17 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         return super.build(buildTree(provider, path), path);
     }
 
-    ObjectNode buildTree(ConfigurationSourceProvider provider, String path) throws IOException, ConfigurationException {
+    /**
+     * create the configuration tree (with inheritance, imports, etc) and return before mapping onto the configuration object
+     * and validating
+     *
+     * @param provider the configurationSourceProvider to use to load configuration files
+     * @param path the path to the configuration that will be understood by the provider
+     * @return the config tree
+     * @throws IOException
+     * @throws ConfigurationException
+     */
+    public ObjectNode buildTree(ConfigurationSourceProvider provider, String path) throws IOException, ConfigurationException {
         ObjectNode externalConfig = null;
         if (externalConfigFile != null) {
             String externalPath = externalConfigFile.getCanonicalPath();
@@ -120,12 +138,12 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
     ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode) throws DWConfigFactoryException {
         if (importNode.isTextual() && importNode.asText() != null) {
             return mergeAndReturnDest(importer, readTree(sourceProvider, importNode.asText()));
-        } else if (importNode.isObject() && importNode.get(IMPORT_LOCATION) != null && importNode.get(IMPORT_LOCATION).isTextual()) {
-            JsonNode optionalNode = importNode.get("optional");
+        } else if (importNode.isObject() && importNode.get(IMPORT_KEY_LOCATION) != null && importNode.get(IMPORT_KEY_LOCATION).isTextual()) {
+            JsonNode optionalNode = importNode.get(IMPORT_KEY_OPTIONAL);
             if (optionalNode != null && optionalNode.isBoolean() && optionalNode.asBoolean()) {
-                return importOptionalConfig(sourceProvider, importer, importNode.get(IMPORT_LOCATION));
+                return importOptionalConfig(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION));
             } else {
-                return mergeFromImportNode(sourceProvider, importer, importNode.get(IMPORT_LOCATION));
+                return mergeFromImportNode(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION));
             }
         } else {
             return importer;

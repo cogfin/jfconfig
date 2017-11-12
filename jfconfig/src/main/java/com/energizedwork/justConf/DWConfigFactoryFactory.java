@@ -25,6 +25,7 @@ public class DWConfigFactoryFactory<T> implements ConfigurationFactoryFactory<T>
 
     private final String parentKey;
     private final String importKey;
+    private final String propertyOverridePrefix;
     private final File externalConfig;
     private final List<DeserializationFeature> enableFeatures;
     private final List<DeserializationFeature> disableFeatures;
@@ -35,9 +36,10 @@ public class DWConfigFactoryFactory<T> implements ConfigurationFactoryFactory<T>
      *
      * @param parentKey the key in the yaml document to identify a parent configuration
      * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
+     * @param propertyOverridePrefix the string prefix for system properties to identify them as configuration overrides
      */
-    public DWConfigFactoryFactory(String parentKey, String importKey) {
-        this(parentKey, importKey, null, Collections.singletonList(FAIL_ON_UNKNOWN_PROPERTIES), Collections.emptyList());
+    public DWConfigFactoryFactory(String parentKey, String importKey, String propertyOverridePrefix) {
+        this(parentKey, importKey, propertyOverridePrefix, null, Collections.singletonList(FAIL_ON_UNKNOWN_PROPERTIES), Collections.emptyList());
     }
 
     /**
@@ -46,10 +48,11 @@ public class DWConfigFactoryFactory<T> implements ConfigurationFactoryFactory<T>
      *
      * @param parentKey the key in the yaml document to identify a parent configuration
      * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
+     * @param propertyOverridePrefix the string prefix for system properties to identify them as configuration overrides
      * @param externalConfig a file which if present provides overriding configuration (YAML)
      */
-    public DWConfigFactoryFactory(String parentKey, String importKey, File externalConfig) {
-        this(parentKey, importKey, externalConfig, Collections.singletonList(FAIL_ON_UNKNOWN_PROPERTIES), Collections.emptyList());
+    public DWConfigFactoryFactory(String parentKey, String importKey, String propertyOverridePrefix, File externalConfig) {
+        this(parentKey, importKey, propertyOverridePrefix, externalConfig, Collections.singletonList(FAIL_ON_UNKNOWN_PROPERTIES), Collections.emptyList());
     }
 
     /**
@@ -58,15 +61,17 @@ public class DWConfigFactoryFactory<T> implements ConfigurationFactoryFactory<T>
      *
      * @param parentKey the key in the yaml document to identify a parent configuration
      * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
+     * @param propertyOverridePrefix the string prefix for system properties to identify them as configuration overrides
      * @param externalConfig a file which if present provides overriding configuration (YAML)
      * @param enableFeatures a list of deserializationFeatures to enable on the objectMapper
      * @param disableFeatures a list of deserializationFeatures to disable on the objectMapper
      */
-    public DWConfigFactoryFactory(String parentKey, String importKey, File externalConfig,
+    public DWConfigFactoryFactory(String parentKey, String importKey, String propertyOverridePrefix, File externalConfig,
                                   List<DeserializationFeature> enableFeatures,
                                   List<DeserializationFeature> disableFeatures) {
         this.parentKey = parentKey;
         this.importKey = importKey;
+        this.propertyOverridePrefix = propertyOverridePrefix;
         this.externalConfig = externalConfig;
         this.enableFeatures = enableFeatures;
         this.disableFeatures = disableFeatures;
@@ -84,12 +89,12 @@ public class DWConfigFactoryFactory<T> implements ConfigurationFactoryFactory<T>
             Class<T>     klass,
             Validator    validator,
             ObjectMapper objectMapper,
-            String       propertyPrefix) {
+            String       IGNORED_PROPERTY_PREFIX) {
         return new DWConfigFactory<T>(
             klass,
             validator,
             configureObjectMapper(objectMapper.copy()),
-            propertyPrefix,
+            propertyOverridePrefix,
             parentKey,
             importKey,
             externalConfig);

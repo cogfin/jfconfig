@@ -33,7 +33,7 @@ public class JFConfig {
     /**
      * {@value}
      */
-    public static final String DEFAULT_PROPERTY_OVERRIDE_PREFIX = "ew-conf";
+    public static final String DEFAULT_PROPERTY_OVERRIDE_PREFIX = "jf-conf";
 
     /**
      * wrap a configurationSourceProvider with a substitutingSourceProvider for environment variable replacement using the
@@ -188,8 +188,8 @@ public class JFConfig {
      */
     public static <C> C fromSourceProvider(ConfigurationSourceProvider sourceProvider, Class<C> configClass, String configLocation, String parentKey, String importKey, File externalConfigFile, String propertyOverridePrefix) {
         try {
-            DWConfigFactoryFactory<C> factoryFactory = new DWConfigFactoryFactory<C>(parentKey, importKey, externalConfigFile);
-            ConfigurationFactory<C> factory = factoryFactory.create(configClass, newValidatorFactory().getValidator(), newObjectMapper(), propertyOverridePrefix);
+            DWConfigFactoryFactory<C> factoryFactory = new DWConfigFactoryFactory<C>(parentKey, importKey, propertyOverridePrefix, externalConfigFile);
+            ConfigurationFactory<C> factory = factoryFactory.create(configClass, newValidatorFactory().getValidator(), newObjectMapper(), "IGNORED");
             return factory.build(sourceProvider, configLocation);
         } catch (Exception e) {
             throw new JFConfigException(e);
@@ -266,7 +266,7 @@ public class JFConfig {
     @SuppressWarnings("unchecked")
     public static void printConfigTree(OutputStream out, ConfigurationSourceProvider sourceProvider, String configLocation, String parentKey, String importKey, File externalConfigFile) {
         try {
-            DWConfigFactoryFactory<Object> factoryFactory = new DWConfigFactoryFactory<Object>(parentKey, importKey, externalConfigFile);
+            DWConfigFactoryFactory<Object> factoryFactory = new DWConfigFactoryFactory<Object>(parentKey, importKey, "N/A", externalConfigFile);
             DWConfigFactory factory = (DWConfigFactory) factoryFactory.create(Object.class, newValidatorFactory().getValidator(), newObjectMapper(), "N/A");
             createYamlObjectMapper().writerWithDefaultPrettyPrinter().writeValue(out, factory.buildTree(sourceProvider, configLocation));
         } catch (Exception e) {
