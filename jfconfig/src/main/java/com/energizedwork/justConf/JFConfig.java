@@ -8,6 +8,9 @@ import io.dropwizard.configuration.*;
 import java.io.File;
 import java.io.OutputStream;
 
+import static com.energizedwork.justConf.DWConfigFactoryFactory.DEFAULT_IMPORT_KEY;
+import static com.energizedwork.justConf.DWConfigFactoryFactory.DEFAULT_PARENT_KEY;
+import static com.energizedwork.justConf.DWConfigFactoryFactory.DEFAULT_PROPERTY_OVERRIDE_PREFIX;
 import static io.dropwizard.jackson.Jackson.newObjectMapper;
 import static io.dropwizard.jersey.validation.Validators.newValidatorFactory;
 
@@ -19,21 +22,6 @@ import static io.dropwizard.jersey.validation.Validators.newValidatorFactory;
  * </p>
  */
 public class JFConfig {
-
-    /**
-     * {@value}
-     */
-    public static final String DEFAULT_PARENT_KEY = "inherits";
-
-    /**
-     * {@value}
-     */
-    public static final String DEFAULT_IMPORT_KEY = "import";
-
-    /**
-     * {@value}
-     */
-    public static final String DEFAULT_PROPERTY_OVERRIDE_PREFIX = "jf-conf";
 
     /**
      * wrap a configurationSourceProvider with a substitutingSourceProvider for environment variable replacement using the

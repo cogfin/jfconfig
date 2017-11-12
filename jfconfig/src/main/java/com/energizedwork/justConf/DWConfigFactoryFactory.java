@@ -23,12 +23,33 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
  */
 public class DWConfigFactoryFactory<T> implements ConfigurationFactoryFactory<T> {
 
+    /**
+     * {@value}
+     */
+    public static final String DEFAULT_PARENT_KEY = "inherits";
+    /**
+     * {@value}
+     */
+    public static final String DEFAULT_IMPORT_KEY = "import";
+    /**
+     * {@value}
+     */
+    public static final String DEFAULT_PROPERTY_OVERRIDE_PREFIX = "jf-conf";
+
     private final String parentKey;
     private final String importKey;
     private final String propertyOverridePrefix;
     private final File externalConfig;
     private final List<DeserializationFeature> enableFeatures;
     private final List<DeserializationFeature> disableFeatures;
+
+    /**
+     * A factory that creates {@link DWConfigFactory} with default parentKey, importKey and propertyOverridePrefix, no
+     * external configuration file and the {@link ObjectMapper} set to {@link DeserializationFeature#FAIL_ON_UNKNOWN_PROPERTIES}
+     */
+    public DWConfigFactoryFactory() {
+        this(DEFAULT_PARENT_KEY, DEFAULT_IMPORT_KEY, DEFAULT_PROPERTY_OVERRIDE_PREFIX);
+    }
 
     /**
      * A factory that creates {@link DWConfigFactory} with no external configuration file and the {@link ObjectMapper}
