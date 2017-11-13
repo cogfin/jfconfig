@@ -10,6 +10,8 @@ import io.dropwizard.setup.Environment
 import com.energizedwork.justConf.DWConfigFactoryFactory
 import net.sourceforge.argparse4j.inf.Namespace
 
+import static com.energizedwork.justConf.DWConfigFactoryFactory.DEFAULT_PROPERTY_OVERRIDE_PREFIX
+
 class ConfigurationTestApplication<T> extends Application<T> {
     def configCommand
     def configClass
@@ -24,7 +26,7 @@ class ConfigurationTestApplication<T> extends Application<T> {
     void initialize(Bootstrap<T> bootstrap) {
         super.initialize(bootstrap)
         this.configCommand = new ConfigCommand(this)
-        bootstrap.setConfigurationFactoryFactory(new DWConfigFactoryFactory<T>("inherits", importKey, externalConfig))
+        bootstrap.setConfigurationFactoryFactory(new DWConfigFactoryFactory<T>("inherits", importKey, DEFAULT_PROPERTY_OVERRIDE_PREFIX, externalConfig))
         bootstrap.addCommand(configCommand)
         bootstrap.setConfigurationSourceProvider(
                 new SubstitutingSourceProvider(
