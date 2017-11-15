@@ -88,7 +88,11 @@ void initialize(Bootstrap<T> bootstrap) {
 
 ## Inheritance
 
-The config that is being inherited will be overriden by the config that is inheriting where the config keys match. This enables the inherited file to provide both common configuration and default values
+Inherited config will be overridden by the config that inherits it to enable the inherited file to provide both common configuration or default values
+
+A config can only inherit from a single other config, but there are no limits to the size of the inheritance tree
+ 
+Inherited config supports imports in the same way as the main config
 
 If the inheritance key (default "inherits") is found in the config then it must be followed by a location that can be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the inherited config will be loaded
 
@@ -101,38 +105,38 @@ showStackTrace: false
 minifyAssets: true
 ```
 
-###### cloud.yml
+###### aws.yml
 ```yaml
 inherits: myapp.yml
 imageRepository:
-  type: aws
-  secret: ${AWS_SECRET:-}
-  endpoint: ${AWS_ENDPOINT:-xyz.amazonaws.com}
+  type: s3
+  secret: ${S3_SECRET:-}
+  endpoint: ${S3_ENDPOINT:-xyz.amazonaws.com}
 ```
 
 ###### test.yml
 ```yaml
-inherits: cloud.yml
+inherits: aws.yml
 showStackTrace: true
 minifyAssets: false
 imageRepository:
-  accessKey: ${AWS_ACCESS_KEY:-testUser}
+  accessKey: ${S3_ACCESS_KEY:-testUser}
   bucket: test-images
 ```
 
 ###### prod.yml
 ```yaml
-inherits: cloud.yml
+inherits: aws.yml
 imageRepository:
-  accessKey: ${AWS_ACCESS_KEY:-prodAwsUser}
+  accessKey: ${S3_ACCESS_KEY:-prodAwsUser}
   bucket: production-images
 ```
 
 ###### qa.yml
 ```yaml
-inherits: cloud.yml
+inherits: aws.yml
 imageRepository:
-  accessKey: ${AWS_ACCESS_KEY:-qaAwsUser}
+  accessKey: ${S3_ACCESS_KEY:-qaAwsUser}
   bucket: qa-images
 ```
 
@@ -150,7 +154,9 @@ imageRepository:
 
 The imported config can be overriden by the config that imports it (or any config that inherits from the importing config)
 
-If the import key (default "inherits") is found in the config then it must be followed by a location that can be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
+Imported config does not support inheritance or further imports
+
+If the import key (default "inherits") is found in the config then the string value can be a location that will be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
 
 ###### config-with-import.yml
 ```yaml
@@ -195,10 +201,28 @@ Simple required imports and the map form can both be used
 ```yaml
 applicationName: My Application
 import:
-  - import-required-config1.yml
-  - import-required-config2.yml
+  - required-config1.yml
+  - required-config2.yml
   - location: optional-config.yml
     optional: true
   - location: required-config3.yml
     optional: false
 ```
+
+## Environment variables
+
+## Sytem property overrides
+
+## Validation
+
+## Polymophism
+
+## Utilities
+
+### Validating config
+
+### Printing fully resolved config
+
+### Printing config tree before validation
+
+### Printing config tree before validation without env var substitution
