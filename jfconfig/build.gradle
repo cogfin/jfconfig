@@ -10,10 +10,6 @@ buildscript {
     }
 }
 
-plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
-}
-
 apply plugin: 'java-library'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
@@ -27,22 +23,10 @@ dependencyManagement {
     }
 }
 
-def fetchAwsCredentials = {
-    try {
-        return new ProfileCredentialsProvider().credentials
-    } catch (Exception e) {
-        logger.debug('Unable to retrieve AWS credentials from profile, publishing to S3 will not be available.', e)
-        return null
-    }
-}
-
-AWSCredentials awsCredentials = fetchAwsCredentials()
-
 configurations {
     compiledTests
     javadocs
     sources
-//    shadow
 }
 
 dependencies {
@@ -113,10 +97,6 @@ signing {
     sign configurations.archives
 }
 
-shadowJar {
-    mergeServiceFiles()
-}
-
 uploadArchives {
     def doNexusUpload = Boolean.parseBoolean(deployNexus)
     def credentials = [
@@ -161,26 +141,36 @@ uploadArchives {
     }
 }
 
-// For PM (commented as credential dsl clashes with nexus uploads)
-//publishing {
-//    repositories {
-//        maven {
-////            url "file:///tmp/testPublishRepo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
-//            url "s3://pm-maven-repo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
-//            credentials(AwsCredentials) {
-//                accessKey = awsCredentials?.AWSAccessKeyId
-//                secretKey = awsCredentials?.AWSSecretKey
-//            }
-//        }
-//    }
-//    publications {
-//        sources(MavenPublication) {
-//            from components.java
-//            artifact sourcesJar
-//        }
-//        javadoc(MavenPublication) {
-//            from components.java
-//            artifact javadocsJar
-//        }
-//    }
+def fetchAwsCredentials = {
+    try {
+        return new ProfileCredentialsProvider().credentials
+    } catch (Exception e) {
+        logger.debug('Unable to retrieve AWS credentials from profile, publishing to S3 will not be available.', e)
+        return null
+    }
+}
+
+AWSCredentials awsCredentials = fetchAwsCredentials()
+
+publishing.repositories {
+    maven {
+//            url "file:///tmp/testPublishRepo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
+        url "s3://pm-maven-repo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
+        credentials(AwsCredentials) {
+            accessKey = awsCredentials?.AWSAccessKeyId
+            secretKey = awsCredentials?.AWSSecretKey
+        }
+    }
+}
+
+publishing.publications {
+    sources(MavenPublication) {
+        from components.java
+        artifact sourcesJar
+    }
+    javadoc(MavenPublication) {
+        from components.java
+        artifact javadocsJar
+    }
+}
 //}
