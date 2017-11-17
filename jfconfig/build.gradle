@@ -18,6 +18,7 @@ apply plugin: 'java-library'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'groovy'
+apply plugin: 'signing'
 
 
 dependencyManagement {
@@ -89,36 +90,52 @@ artifacts {
     compiledTests compiledTestsJar
     javadocs javadocsJar
     sources sourcesJar
+    archives sourcesJar, javadocsJar
+}
+
+signing {
+    boolean shouldSign = Boolean.parseBoolean(project.properties.doSigning)
+    if (!shouldSign) {
+        if (project.hasProperty('signing.keyId')) {
+            // remove keyId as may be set in ~/gradle/gradle.properties and signing will be attempted if have key!
+            project.setProperty('signing.keyId', null)
+        }
+    } else {
+        if (!project.getProperty('signing.secretKeyRingFile')) {
+            // if using gpg2 > 2.1 then
+            // gpg2 --export-secret-key <keyID> > ~/.gnupg/secring.gpg
+            project.setProperty('signing.secretKeyRingFile', "${System.getProperty('user.home')}/.gnupg/secring.gpg")
+        }
+    }
+    required {
+        shouldSign
+    }
+    sign configurations.archives
 }
 
 shadowJar {
     mergeServiceFiles()
 }
 
-install {
-    repositories {
-        mavenDeployer {
-            repository(url: 'file:///tmp/testRepo/releases/')
-            snapshotRepository(url: 'file:///tmp/testRepo/snapshots/')
-            pom.project {
-                licenses {
-                    license {
-                        name 'The MIT License'
-                        url 'http://www.opensource.org/licenses/MIT'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
-}
-
 uploadArchives {
+    def doNexusUpload = Boolean.parseBoolean(deployNexus)
+    def credentials = [
+        userName: project.properties.nexusUsername,
+        password: project.properties.nexusPassword,
+    ]
     repositories {
         mavenDeployer {
-            repository(url: 'file:///tmp/testRepo/releases/')
-            snapshotRepository(url: 'file:///tmp/testRepo/snapshots/')
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            repository(url: doNexusUpload ? nexusRepo : testRepo) {
+                authentication(credentials)
+            }
+            snapshotRepository(url: doNexusUpload ? nexusSnapshotRepo : testSnapshotRepo) {
+                authentication(credentials)
+            }
             pom.project {
+                name 'JFConfig'
+                description 'Simple validated configuration loading'
+                url 'https://github.com/energizedwork/justConf'
                 licenses {
                     license {
                         name 'The MIT License'
@@ -126,30 +143,44 @@ uploadArchives {
                         distribution 'repo'
                     }
                 }
+                developers {
+                    developer {
+                        name 'Anthony Robinson'
+                        email 'tony@energizedwork.com'
+                        organization = 'Energized Work'
+                        organizationUrl 'https://www.energizedwork.com/'
+                    }
+                }
+                scm {
+                    connection 'scm:git:git://github.com/energizedwork/justConf.git'
+                    developerConnection 'scm:git:ssh://github.com:energizedwork/justConf.git'
+                    url 'https://github.com/energizedwork/justConf'
+                }
             }
         }
     }
 }
 
-publishing {
-    repositories {
-        maven {
-//            url "file:///tmp/testPublishRepo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
-            url "s3://pm-maven-repo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
-            credentials(AwsCredentials) {
-                accessKey = awsCredentials?.AWSAccessKeyId
-                secretKey = awsCredentials?.AWSSecretKey
-            }
-        }
-    }
-    publications {
-        sources(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-        }
-        javadoc(MavenPublication) {
-            from components.java
-            artifact javadocsJar
-        }
-    }
-}
+// For PM (commented as credential dsl clashes with nexus uploads)
+//publishing {
+//    repositories {
+//        maven {
+////            url "file:///tmp/testPublishRepo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
+//            url "s3://pm-maven-repo/${version.contains('SNAPSHOT') ? 'snapshots' : 'releases'}/"
+//            credentials(AwsCredentials) {
+//                accessKey = awsCredentials?.AWSAccessKeyId
+//                secretKey = awsCredentials?.AWSSecretKey
+//            }
+//        }
+//    }
+//    publications {
+//        sources(MavenPublication) {
+//            from components.java
+//            artifact sourcesJar
+//        }
+//        javadoc(MavenPublication) {
+//            from components.java
+//            artifact javadocsJar
+//        }
+//    }
+//}
