@@ -3,6 +3,8 @@ package com.energizedwork.justConf
 import com.energizedwork.justConf.testSupport.NestedConfigWithDiscoverableFactories
 import com.energizedwork.justConf.testSupport.NestedConfigWithDiscoverableFactoriesInHolders
 import com.energizedwork.justConf.testSupport.SimpleConfigObject
+import com.energizedwork.justConf.testSupport.WithObjectStore
+import com.energizedwork.justConf.testSupport.objectStore.MemoryObjectStoreFactory
 import org.junit.After
 import org.junit.BeforeClass
 import spock.lang.Shared
@@ -299,6 +301,14 @@ abstract class InheritanceConfigurationSpec extends Specification {
         expect:
         config.imageStoreFactory.is(config.someOtherStuff)
 //        config.thirdPartyConfiguration.aThing == config.thirdPartyConfiguration.anotherThing
+    }
+
+    def "can load polymorphic objects that do not need config"() {
+        given:
+        WithObjectStore config = getConfiguration(WithObjectStore, "config/zero-cfg-polymorphic.yml")
+
+        expect:
+        config.stuff instanceof MemoryObjectStoreFactory
     }
 
     ByteArrayOutputStream captureSysError() {
