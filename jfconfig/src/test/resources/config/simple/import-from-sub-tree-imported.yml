@@ -1,0 +1,12 @@
+---
+randomStuff: 1
+something:
+  here: too
+nested:
+  level2:
+    here:
+      notNullProperty: value2
+      notBlankProperty: value3
+      notNullOrBlankProperty: value4
+  moreAt2:
+    here: 3

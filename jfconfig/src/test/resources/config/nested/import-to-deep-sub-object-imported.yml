@@ -1,0 +1,6 @@
+---
+type: database
+url: db-url
+username: myUser
+password: myPassword
+table: widgets

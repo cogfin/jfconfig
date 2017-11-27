@@ -2,6 +2,7 @@ package com.energizedwork.justConf;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.dropwizard.configuration.BaseConfigurationFactory;
@@ -37,6 +38,23 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
      * {@value}
      */
     public static final String IMPORT_KEY_OPTIONAL = "optional";
+
+    /**
+     * {@value}
+     */
+    public static final String IMPORT_KEY_SUB_TREE = "object";
+
+    /**
+     * {@value}
+     */
+    public static final String IMPORT_KEY_TARGET = "target";
+
+    /**
+     * {@value}
+     */
+    public static final String OBJECT_PATH_SEPARATOR = ".";
+
+    private static final String OBJECT_PATH_SEPARATOR_REGEX = "\\.";
 
     final Logger log = LoggerFactory.getLogger(DWConfigFactory.class);
     final String parentKey;
@@ -136,23 +154,75 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
     }
 
     ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode) throws DWConfigFactoryException {
+        return mergeFromImportNode(sourceProvider, importer, importNode, null, null);
+    }
+
+    ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode, String sourceRoot, String destTarget) throws DWConfigFactoryException {
         if (importNode.isTextual() && importNode.asText() != null) {
-            return mergeAndReturnDest(importer, readTree(sourceProvider, importNode.asText()));
+            ObjectNode in = readTree(sourceProvider, importNode.asText());
+            return mergeAndReturnDest(importer, moveTarget(getSubObject(in, sourceRoot), destTarget));
         } else if (importNode.isObject() && importNode.get(IMPORT_KEY_LOCATION) != null && importNode.get(IMPORT_KEY_LOCATION).isTextual()) {
             JsonNode optionalNode = importNode.get(IMPORT_KEY_OPTIONAL);
+            String importRoot = readNode(importNode, IMPORT_KEY_SUB_TREE);
+            String importTarget = readNode(importNode, IMPORT_KEY_TARGET);
             if (optionalNode != null && optionalNode.isBoolean() && optionalNode.asBoolean()) {
-                return importOptionalConfig(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION));
+                return importOptionalConfig(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION), importRoot, importTarget);
             } else {
-                return mergeFromImportNode(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION));
+                return mergeFromImportNode(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION), importRoot, importTarget);
             }
         } else {
             return importer;
         }
     }
 
-    private ObjectNode importOptionalConfig(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode locationNode) {
+    private String readNode(JsonNode node, String key) {
+        JsonNode optionalNode = node.get(key);
+        return optionalNode != null && optionalNode.isTextual() ? optionalNode.asText() : null;
+    }
+
+    private ObjectNode moveTarget(ObjectNode importTree, String destTarget) {
+        if (destTarget == null) {
+            return importTree;
+        } else {
+            JsonNodeFactory factory = JsonNodeFactory.instance;
+            ObjectNode root = factory.objectNode();
+            ObjectNode current = root;
+            String[] targetObjects = destTarget.split(OBJECT_PATH_SEPARATOR_REGEX);
+            String[] allBytLast = Arrays.copyOf(targetObjects, targetObjects.length -1);
+            for (String object : allBytLast) {
+                ObjectNode newNode = factory.objectNode();
+                current.set(object, newNode);
+                current = newNode;
+            }
+            current.set(targetObjects[targetObjects.length -1], importTree);
+            return root;
+        }
+    }
+
+    private ObjectNode getSubObject(ObjectNode importTree, String objectPath) throws DWConfigFactoryException {
+        if (objectPath == null) {
+            return importTree;
+        } else if (objectPath.contains(OBJECT_PATH_SEPARATOR)) {
+            String[] headAndTail = objectPath.split(OBJECT_PATH_SEPARATOR_REGEX, 2);
+            ObjectNode objectNode = getObject(importTree, headAndTail[0]);
+            return getSubObject(objectNode, headAndTail[1]);
+        } else {
+            return getObject(importTree, objectPath);
+        }
+    }
+
+    private ObjectNode getObject(ObjectNode tree, String path) throws DWConfigFactoryException {
+        JsonNode jsonNode = tree.get(path);
+        if (jsonNode == null || !jsonNode.isObject()) {
+            throw new DWConfigFactoryException("Could not find object in imported config", path, configPaths);
+        } else {
+            return (ObjectNode) jsonNode;
+        }
+    }
+
+    private ObjectNode importOptionalConfig(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode locationNode, String importRoot, String destTarget) {
         try {
-            return mergeFromImportNode(sourceProvider, importer, locationNode);
+            return mergeFromImportNode(sourceProvider, importer, locationNode, importRoot, destTarget);
         } catch (Exception e) {
             log.debug("Failed to read optional config {}", locationNode.asText(), e);
             return importer;

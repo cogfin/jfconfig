@@ -213,11 +213,13 @@ import:
 
 ## External configuration file
 
-## Sytem property overrides
+## System property overrides
 
 ## Validation
 
 ## Polymophism
+
+## YAML references (and Jackson impl)
 
 ## Utilities
 

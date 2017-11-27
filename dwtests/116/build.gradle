@@ -1,0 +1,24 @@
+
+dependencyManagement {
+    imports {
+        mavenBom 'io.dropwizard:dropwizard-bom:1.1.6'
+    }
+}
+
+sourceSets {
+    test {
+        groovy {
+            srcDirs = [project(':dwtests').ext.commonTestSource]
+        }
+    }
+}
+
+dependencies {
+    testCompile project(path: ':jfconfig')
+    testCompile project(path: ':jfconfig', configuration: 'compiledTests')
+    testCompile 'io.dropwizard:dropwizard-core'
+    testCompile 'org.codehaus.groovy:groovy-all:2.4.12'
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+}
+
+

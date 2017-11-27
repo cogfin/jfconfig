@@ -216,6 +216,29 @@ abstract class InheritanceConfigurationSpec extends Specification {
         config.ignoredProperty == null
     }
 
+    def "can import from a sub object"() {
+        given:
+        SimpleConfigObject config = getConfiguration(SimpleConfigObject, "config/simple/import-from-sub-tree.yml", "import")
+
+        expect:
+        config.property1 == 'value1'
+        config.notNullProperty == 'value2'
+        config.notBlankProperty == 'value3'
+        config.notNullOrBlankProperty == 'value4'
+    }
+
+    @Unroll
+    def "can import to a sub object for config #configName"() {
+        given:
+        NestedConfigWithDiscoverableFactories config = getConfiguration(NestedConfigWithDiscoverableFactories, "config/nested/${configName}.yml", "import")
+
+        expect:
+        config.component.widgetStoreFactory.url == 'db-url'
+
+        where:
+        configName << ['import-to-sub-object', 'import-to-deep-sub-object']
+    }
+
     def "can import from many files"() {
         given:
         SimpleConfigObject config = getConfiguration(SimpleConfigObject, "config/multiImports/import.yml", "import")

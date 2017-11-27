@@ -1,0 +1,13 @@
+---
+import:
+  location: config/nested/import-to-deep-sub-object-imported.yml
+  target: component.widgetStoreFactory
+
+imageStoreFactory:
+  type: filesystem
+  directory: /var/images
+
+thirdPartyConfiguration:
+  aThing: Thing A
+  anotherThing: Thing B
+
