@@ -122,6 +122,7 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
             }
         }
         configPaths.add(path);
+        log.debug("Loading '{}'", path);
         ObjectNode topConfigNode = readTree(provider, requireNonNull(path));
         topConfigNode = importFromProvider(provider, topConfigNode);
         if (externalConfig != null) {
@@ -159,9 +160,8 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
 
     ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode, String sourceRoot, String destTarget) throws DWConfigFactoryException {
         if (importNode.isTextual() && importNode.asText() != null) {
-            ObjectNode in = readTree(sourceProvider, importNode.asText());
-            in.remove(importKey);
-            in.remove(parentKey);
+            log.debug("Importing '{}'", importNode.asText());
+            ObjectNode in = removeImportAndParentKeysFromConfig(readTree(sourceProvider, importNode.asText()));
             return mergeAndReturnDest(importer, moveTarget(getSubObject(in, sourceRoot), destTarget));
         } else if (importNode.isObject() && importNode.get(IMPORT_KEY_LOCATION) != null && importNode.get(IMPORT_KEY_LOCATION).isTextual()) {
             JsonNode optionalNode = importNode.get(IMPORT_KEY_OPTIONAL);
@@ -175,6 +175,20 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         } else {
             return importer;
         }
+    }
+
+    private ObjectNode removeImportAndParentKeysFromConfig(ObjectNode importing) {
+        if (log.isDebugEnabled()) {
+            if (importing.hasNonNull(parentKey)) {
+                log.debug("Removing parent key '{}' from imported config", parentKey);
+            }
+            if (importing.hasNonNull(importKey)) {
+                log.debug("Removing import key '{}' from imported config", importKey);
+            }
+        }
+        importing.remove(parentKey);
+        importing.remove(importKey);
+        return importing;
     }
 
     private String readNode(JsonNode node, String key) {
@@ -234,6 +248,7 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
     private ObjectNode mergeParents(ConfigurationSourceProvider sourceProvider, ObjectNode config) throws DWConfigFactoryException {
         JsonNode parentPathNode = config.remove(parentKey);
         if (parentPathNode != null && parentPathNode.asText() != null) {
+            log.debug("Inheriting '{}'", parentPathNode.asText());
             ObjectNode parent = readParent(sourceProvider, parentPathNode.asText());
             parent = importFromProvider(sourceProvider, parent);
             merge(config, parent);

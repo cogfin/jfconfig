@@ -152,11 +152,13 @@ imageRepository:
 
 ## Imports
 
-The imported config can be overriden by the config that imports it (or any config that inherits from the importing config)
+#### Simple import
 
-Imported config does not support inheritance or further imports
+The imported config can be overriden by the config that imports it
 
-If the import key (default "inherits") is found in the config then the string value can be a location that will be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
+Imported config does not support inheritance or further imports (any parent/import keys will be removed)
+
+If the import key (default "inherits") is found in the config then the string value will be a location that will be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
 
 ###### config-with-import.yml
 ```yaml
@@ -177,12 +179,18 @@ database:
   url: jdbc:postgresql://test-db/myapp
 ```
 
-#### Optional import
+#### Advanced import (map)
 
-The import can be made optional by providing a map for the import value as below. 
+Advanced options can be enabled by providing a map for the import value.
 
-The location is passed to the ConfigurationSourceProvider.
+##### location (required)
+
+The location is required and passed to the ConfigurationSourceProvider to load
+
+##### optional (optional)
+
 If the optional key is not supplied, it defaults to false.
+If optional is true, the configuration loading will not fail if the config cannot be loaded
 
 ###### config-with-optional-import.yml
 ```yaml
@@ -191,6 +199,18 @@ import:
   location: build-version.yml
   optional: true
 ```
+
+##### object (optional)
+
+object enables a section of the imported config to be loaded. the value is a dot separated path to the config to import. unless target is specified, the config will be imported to the root of the configuration
+
+TODO e.g.
+
+##### target (optional)
+
+target enables imported config to be relocated to somewhere other than the root of the importing configuration
+
+TODO e.g.
 
 #### Multiple imports
 
