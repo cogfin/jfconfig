@@ -1,0 +1,7 @@
+---
+inherits: some/file/that/does/not/matter.yml
+import: another/file/that/does/not/matter.yml
+notNullProperty: value2
+notBlankProperty: value3
+notNullOrBlankProperty: value4
+ignoredProperty: value5

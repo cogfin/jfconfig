@@ -160,6 +160,8 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
     ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode, String sourceRoot, String destTarget) throws DWConfigFactoryException {
         if (importNode.isTextual() && importNode.asText() != null) {
             ObjectNode in = readTree(sourceProvider, importNode.asText());
+            in.remove(importKey);
+            in.remove(parentKey);
             return mergeAndReturnDest(importer, moveTarget(getSubObject(in, sourceRoot), destTarget));
         } else if (importNode.isObject() && importNode.get(IMPORT_KEY_LOCATION) != null && importNode.get(IMPORT_KEY_LOCATION).isTextual()) {
             JsonNode optionalNode = importNode.get(IMPORT_KEY_OPTIONAL);

@@ -216,6 +216,18 @@ abstract class InheritanceConfigurationSpec extends Specification {
         config.ignoredProperty == null
     }
 
+    def "import removes parent and import keys"() {
+        given:
+        SimpleConfigObject config = getConfiguration(SimpleConfigObject, "config/simple/import-removes-parent-and-import-keys.yml", "import")
+
+        expect:
+        config.property1 == 'value1'
+        config.notNullProperty == 'value2'
+        config.notBlankProperty == 'value3'
+        config.notNullOrBlankProperty == 'value4'
+        config.ignoredProperty == null
+    }
+
     def "can import from a sub object"() {
         given:
         SimpleConfigObject config = getConfiguration(SimpleConfigObject, "config/simple/import-from-sub-tree.yml", "import")
