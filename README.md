@@ -1,8 +1,10 @@
-# JFConfig
+# JFConfig: Just configure
 
-#### Create and validate configuration objects from YAML with inheritance, imports and overrides by external configuration file, system properties and environment variables
+**Create and validate configuration objects from YAML with inheritance and imports**
 
-## Standalone - 1 line configuration
+**Override configuration using and external configuration file, system properties and environment variables**
+
+## Standalone (1 line) configuration
 
 ###### MyApp.groovy
 ```groovy
@@ -39,7 +41,6 @@ class MyCredentials {
 
 ###### config/production.yml
 ```yaml
----
 applicationName: Demo Application
 myCredentials:
   username: ${MYAPP_USERNAME:-demoUser}
@@ -88,9 +89,9 @@ void initialize(Bootstrap<T> bootstrap) {
 
 ## Inheritance
 
-Inherited config will be overridden by the config that inherits it to enable the inherited file to provide both common configuration or default values
+A configuration file (YAML) can inherit from another configuration file. The resulting configuration will contain the config from both files with the inheriting file taking precedence where there is duplication
 
-A config can only inherit from a single other config, but there are no limits to the size of the inheritance tree
+A config can only inherit from a single other config, but that config can inherit from another and there is no fixed limit to the size of the inheritance tree
  
 Inherited config supports imports in the same way as the main config
 
@@ -204,18 +205,19 @@ import:
 
 object enables a section of the imported config to be loaded. the value is a dot separated path to the config to import. unless target is specified, the config will be imported to the root of the configuration
 
-TODO e.g.
+See target below for an examples using object
 
 ##### target (optional)
 
 target enables imported config to be relocated to somewhere other than the root of the importing configuration
 
-TODO e.g.
+### TODO - object/target example
 
 #### Multiple imports
 
-Multiple files can be imported by providing a sequence as the value for the import key.
-Simple required imports and the map form can both be used
+Multiple files can be imported by providing a sequence as the value for the import key
+
+Simple string imports and the advanced map form can both be used
 
 ###### multiple-imports.yml
 ```yaml
@@ -231,6 +233,46 @@ import:
 
 ## Environment variables
 
+Most of the utility methods in JFConfig wrap the source providers with a substituting source provider which will use the apache StrSubstitutor to replace environment variables in the configuration
+
+The substitution will replace the string `${ENABLE_DEBUG}` in the config with the value of environment variable `ENABLE_DEBUG` **if the environment variable is set!**
+
+For the above reason, it is recommended to **always supply a default value**
+
+Default values are provided using the bash `:-` syntax, eg `${ENABLE_DEBUG:-false}` 
+
+When there is no sensible default or you require an environment variable to be supplied be supplied, then add an empty default `${ENV_VAR:-}`, which will be replaced with null (a default of empty string can be supplied with `${ENV_VAR:-""}`)
+
+In the following example, the configuration will fail validation if either USE_THE_THING or MYAPP_PASSWORD is not set (and MYAPP_PASSWORD cannot be an empty String)
+
+###### AppCfg.groovy
+```groovy
+    @NotNull
+    Boolean useTheThing
+    
+    @NotBlank
+    String username
+
+    @NotBlank
+    String password    
+```
+
+###### config.yml
+```yaml
+useTheThing: ${USE_THE_THING:-}
+username: ${MYAPP_USERNAME:-myapp}
+password: ${MYAPP_PASSWORD:-}
+```
+
+### Disabling environment variable substitution
+ 
+Environment variable substitution can be disabled by using a method in JFConfig that takes a ConfigurationSourceProvider
+
+###### Load config from classpath without environment variable substitution
+```groovy
+MyAppCfg validatedConfig = JFConfig.fromSourceProvider(new ResourceConfigurationSourceProvider(), MyAppCfg, 'config/production.yml')
+```
+
 ## External configuration file
 
 ## System property overrides
@@ -238,6 +280,10 @@ import:
 ## Validation
 
 ## Polymophism
+
+Polymorphic configuration is provided by Jackson and the dropwizard Discoverable marker interface
+
+[Polymorphic configuration in the Dropwizard documentation](http://www.dropwizard.io/1.2.2/docs/manual/configuration.html#polymorphic-configuration)
 
 ## YAML references (and Jackson impl)
 
