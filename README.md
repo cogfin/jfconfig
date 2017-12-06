@@ -4,7 +4,7 @@
 
 **Override configuration using and external configuration file, system properties and environment variables**
 
-#### Javadoc
+## Javadoc
 [Latest release](https://javadoc.io/doc/com.energizedwork/jfconfig)
 
 ## Standalone (1 line) configuration
@@ -276,7 +276,10 @@ Environment variable substitution can be disabled by using a method in JFConfig 
 
 ###### Load config from classpath without environment variable substitution
 ```groovy
-MyAppCfg validatedConfig = JFConfig.fromSourceProvider(new ResourceConfigurationSourceProvider(), MyAppCfg, 'config/production.yml')
+MyAppCfg validatedConfig = JFConfig.fromSourceProvider(
+                                 new ResourceConfigurationSourceProvider(),
+                                 MyAppCfg,
+                                 'config/production.yml')
 ```
 
 ## External configuration file
