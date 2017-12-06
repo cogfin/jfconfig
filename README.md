@@ -4,6 +4,9 @@
 
 **Override configuration using and external configuration file, system properties and environment variables**
 
+#### Javadoc
+[Latest release](https://javadoc.io/doc/com.energizedwork/jfconfig)
+
 ## Standalone (1 line) configuration
 
 ###### MyApp.groovy
@@ -161,6 +164,8 @@ Imported config does not support inheritance or further imports (any parent/impo
 
 If the import key (default "inherits") is found in the config then the string value will be a location that will be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
 
+In the example below, loading config-with-import.yml will result in a database config object with debug set to true 
+
 ###### config-with-import.yml
 ```yaml
 applicationName: My Application
@@ -178,6 +183,7 @@ database:
   password: ${DB_PASSWORD:-}
   driver: org.postgresql.Driver
   url: jdbc:postgresql://test-db/myapp
+  debug: false
 ```
 
 #### Advanced import (map)
@@ -243,7 +249,7 @@ Default values are provided using the bash `:-` syntax, eg `${ENABLE_DEBUG:-fals
 
 When there is no sensible default or you require an environment variable to be supplied be supplied, then add an empty default `${ENV_VAR:-}`, which will be replaced with null (a default of empty string can be supplied with `${ENV_VAR:-""}`)
 
-In the following example, the configuration will fail validation if either USE_THE_THING or MYAPP_PASSWORD is not set (and MYAPP_PASSWORD cannot be an empty String)
+In the following example, the configuration will fail validation if either USE_THE_THING or MYAPP_PASSWORD is not set (additionally MYAPP_PASSWORD cannot be an empty String)
 
 ###### AppCfg.groovy
 ```groovy
@@ -275,9 +281,28 @@ MyAppCfg validatedConfig = JFConfig.fromSourceProvider(new ResourceConfiguration
 
 ## External configuration file
 
+Whilst many applications are now deployed into containers and configured using environment variables,
+there is still a need to be able to supply local information in an external configuration file i.e. desktop applications.
+
+The external configuration file provides a way to supply an **optional** location for override configuration that will be loaded directly
+to allow the rest of the config to be loaded from the configuration source provider i.e. from the classpath.
+
+If the file does not exist, it is ignored and configuration continues to load.
+
+The external config does not support environment variable substitution.
+
 ## System property overrides
 
+Configuration properties can be overridden with system properties. This happens after the configuration has been fully resolved and mapped onto the configuration
+object, but before validation.
+
+System properties starting with the propertyOverridePrefix (default `jf-conf`) followed by a `.` and a path to a property will override that property.
+ 
+See the Note at the bottom of the [Configuration section in the Dropwizard manual](https://www.dropwizard.io/1.2.2/docs/manual/core.html#configuration) and substitute `dw.` with `jf-conf.` or whatever you have configured your prefix to  
+
 ## Validation
+
+Validation is provided by [Hibernate Validator](https://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/#section-declaring-bean-constraints)
 
 ## Polymophism
 
@@ -287,11 +312,34 @@ Polymorphic configuration is provided by Jackson and the dropwizard Discoverable
 
 ## YAML references (and Jackson impl)
 
+### TODO
+
 ## Utilities
 
 ### Validating config
 
+To validate a configuration without starting your application, just load it! Validation is always performed and an exception will be thrown containing details of failures if the config could not be loaded or was invalid
+
+###### ValidateConfig.groovy
+```groovy
+    static void main(String[] args) {
+        String configLocation = args[0]
+        JFConfig.fromClasspath(MyApplicationConfig, configLocation)
+    }
+```
+
 ### Printing fully resolved config
+
+A utility method is provided to serialize any object to YAML. Depending on object type and Jackson JSON annotations, this may not look like the source yaml you configured it with, but can be very useful for debugging
+ 
+###### PrintValidatedConfig.groovy
+```groovy
+    static void main(String[] args) {
+        String configLocation = args[0]
+        def config = JFConfig.fromClasspath(MyApplicationConfig, configLocation)
+        JFConfig.printConfig(System.out, config)
+    }
+```
 
 ### Printing config tree before validation
 

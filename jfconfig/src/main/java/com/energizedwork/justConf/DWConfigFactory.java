@@ -66,7 +66,7 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
      * @param klass the class to configure
      * @param validator the validator to ensure the configuration has been fully configured
      * @param objectMapper the objectMapper used to bind the yaml config to the cofiguration instance
-     * @param propertyPrefix the prefix for system properties used to override configuration
+     * @param propertyPrefix the prefix for system properties used to override configuration (do not include the trailing dot)
      * @param parentKey the key in the yaml document to identify a parent configuration
      * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
      * @param externalConfigFile an optional external configuration file for overriding config. Set to null when not required.

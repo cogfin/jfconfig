@@ -170,7 +170,7 @@ public class JFConfig {
      * @param parentKey the key in the yaml document to identify a parent configuration
      * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
      * @param externalConfigFile an optional external configuration file for overrides
-     * @param propertyOverridePrefix prefix for system property overrides
+     * @param propertyOverridePrefix prefix for system property overrides (do not include the trailing dot)
      * @param <C> the class of the object to create and configure
      * @return a configuration object
      */

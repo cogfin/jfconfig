@@ -82,7 +82,7 @@ public class DWConfigFactoryFactory<T> implements ConfigurationFactoryFactory<T>
      *
      * @param parentKey the key in the yaml document to identify a parent configuration
      * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
-     * @param propertyOverridePrefix the string prefix for system properties to identify them as configuration overrides
+     * @param propertyOverridePrefix the string prefix for system properties to identify them as configuration overrides (do not include the trailing dot)
      * @param externalConfig a file which if present provides overriding configuration (YAML)
      * @param enableFeatures a list of deserializationFeatures to enable on the objectMapper
      * @param disableFeatures a list of deserializationFeatures to disable on the objectMapper
