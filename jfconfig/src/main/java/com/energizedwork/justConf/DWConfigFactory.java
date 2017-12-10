@@ -52,8 +52,12 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
     /**
      * {@value}
      */
-    public static final String OBJECT_PATH_SEPARATOR = ".";
+    public static final String IMPORT_KEY_PROCESS_PARENT_AND_IMPORTS = "processParentAndImports";
 
+    /**
+     * {@value}
+     */
+    public static final String OBJECT_PATH_SEPARATOR = ".";
     private static final String OBJECT_PATH_SEPARATOR_REGEX = "\\.";
 
     final Logger log = LoggerFactory.getLogger(DWConfigFactory.class);
@@ -66,7 +70,7 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
      * @param klass the class to configure
      * @param validator the validator to ensure the configuration has been fully configured
      * @param objectMapper the objectMapper used to bind the yaml config to the cofiguration instance
-     * @param propertyPrefix the prefix for system properties used to override configuration (do not include the trailing dot)
+     * @param propertyPrefix the prefix for system properties used to override configuration
      * @param parentKey the key in the yaml document to identify a parent configuration
      * @param importKey the key in the yaml document to identify configurations to import. When null, imports are disabled.
      * @param externalConfigFile an optional external configuration file for overriding config. Set to null when not required.
@@ -131,6 +135,12 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         return mergeParents(provider, topConfigNode);
     }
 
+    private ObjectNode importTree(ConfigurationSourceProvider provider, String path) throws IOException, ConfigurationException {
+        configPaths.add(path);
+        ObjectNode topConfigNode = importFromProvider(provider, readTree(provider, path));
+        return mergeParents(provider, topConfigNode);
+    }
+
     private ObjectNode importFromProvider(ConfigurationSourceProvider sourceProvider, ObjectNode importer) throws DWConfigFactoryException {
         if (importKey == null) {
             return importer;
@@ -155,26 +165,37 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
     }
 
     ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode) throws DWConfigFactoryException {
-        return mergeFromImportNode(sourceProvider, importer, importNode, null, null);
+        return mergeFromImportNode(sourceProvider, importer, new ImportConfig(importNode));
     }
 
-    ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode importNode, String sourceRoot, String destTarget) throws DWConfigFactoryException {
-        if (importNode.isTextual() && importNode.asText() != null) {
-            log.debug("Importing '{}'", importNode.asText());
-            ObjectNode in = removeImportAndParentKeysFromConfig(readTree(sourceProvider, importNode.asText()));
-            return mergeAndReturnDest(importer, moveTarget(getSubObject(in, sourceRoot), destTarget));
-        } else if (importNode.isObject() && importNode.get(IMPORT_KEY_LOCATION) != null && importNode.get(IMPORT_KEY_LOCATION).isTextual()) {
-            JsonNode optionalNode = importNode.get(IMPORT_KEY_OPTIONAL);
-            String importRoot = readNode(importNode, IMPORT_KEY_SUB_TREE);
-            String importTarget = readNode(importNode, IMPORT_KEY_TARGET);
-            if (optionalNode != null && optionalNode.isBoolean() && optionalNode.asBoolean()) {
-                return importOptionalConfig(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION), importRoot, importTarget);
-            } else {
-                return mergeFromImportNode(sourceProvider, importer, importNode.get(IMPORT_KEY_LOCATION), importRoot, importTarget);
+    ObjectNode mergeFromImportNode(ConfigurationSourceProvider sourceProvider, ObjectNode importer, ImportConfig importConfig) throws DWConfigFactoryException {
+        if (importConfig.isValidImportNode()) {
+            log.debug("Importing '{}'", importConfig.getImportLocation());
+            if (configPaths.contains(importConfig.getImportLocation())) {
+                String fileInError = configPaths.get(configPaths.size() -1);
+                configPaths.add(importConfig.getImportLocation());
+                throw new DWConfigFactoryException("Circular import", fileInError, configPaths);
             }
+            List<String> originalConfigPaths = new LinkedList<>(configPaths);
+                    ObjectNode in = null;
+            try {
+                in = importConfig.doImportTree(sourceProvider, importer);
+            } catch (DWConfigFactoryException cfe) {
+                throw cfe;
+            } catch (IOException | ConfigurationException e) {
+                throw new DWConfigFactoryException(importConfig.getImportLocation(), configPaths, e);
+            }
+
+            restoreConfigPaths(originalConfigPaths);
+            return mergeAndReturnDest(importer, moveTarget(getSubObject(in, importConfig.object), importConfig.target));
         } else {
             return importer;
         }
+    }
+
+    private void restoreConfigPaths(List<String> originalConfigPaths) {
+        configPaths.clear();
+        configPaths.addAll(originalConfigPaths);
     }
 
     private ObjectNode removeImportAndParentKeysFromConfig(ObjectNode importing) {
@@ -236,15 +257,6 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         }
     }
 
-    private ObjectNode importOptionalConfig(ConfigurationSourceProvider sourceProvider, ObjectNode importer, JsonNode locationNode, String importRoot, String destTarget) {
-        try {
-            return mergeFromImportNode(sourceProvider, importer, locationNode, importRoot, destTarget);
-        } catch (Exception e) {
-            log.debug("Failed to read optional config {}", locationNode.asText(), e);
-            return importer;
-        }
-    }
-
     private ObjectNode mergeParents(ConfigurationSourceProvider sourceProvider, ObjectNode config) throws DWConfigFactoryException {
         JsonNode parentPathNode = config.remove(parentKey);
         if (parentPathNode != null && parentPathNode.asText() != null) {
@@ -260,8 +272,9 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
 
     private ObjectNode readParent(ConfigurationSourceProvider sourceProvider, String path) throws DWConfigFactoryException {
         if (configPaths.contains(path)) {
+            String fileInError = configPaths.get(configPaths.size() -1);
             configPaths.add(path);
-            throw new DWConfigFactoryException("Circular inheritance", path, configPaths);
+            throw new DWConfigFactoryException("Circular inheritance", fileInError, configPaths);
         }
         configPaths.add(path);
         return readTree(sourceProvider, path);
@@ -320,6 +333,68 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
         newList.addAll(source);
         newList.add(newPath);
         return newList;
+    }
+
+    private static boolean getBooleanValue(ObjectNode objectNode, String key, boolean defaultValue) {
+        JsonNode booleanNode = objectNode.get(key);
+        if (booleanNode != null && booleanNode.isBoolean()) {
+            return booleanNode.asBoolean();
+        } else {
+            return defaultValue;
+        }
+    }
+
+    private class ImportConfig {
+        final JsonNode locationNode;
+        final boolean optional;
+        final String object;
+        final String target;
+        final boolean processParentAndImports;
+        boolean optionalWrapExecuted = false;
+
+        public ImportConfig(JsonNode importNode) {
+            if (importNode.isObject() && importNode.get(IMPORT_KEY_LOCATION) != null && importNode.get(IMPORT_KEY_LOCATION).isTextual()) {
+                ObjectNode importObjectNode = (ObjectNode) importNode;
+                locationNode = importObjectNode.get(IMPORT_KEY_LOCATION);
+                optional = getBooleanValue(importObjectNode, IMPORT_KEY_OPTIONAL, false);
+                object = readNode(importObjectNode, IMPORT_KEY_SUB_TREE);
+                target = readNode(importObjectNode, IMPORT_KEY_TARGET);
+                processParentAndImports = getBooleanValue(importObjectNode, IMPORT_KEY_PROCESS_PARENT_AND_IMPORTS, true);
+            } else {
+                locationNode = importNode;
+                optional = false;
+                object = null;
+                target = null;
+                processParentAndImports = true;
+            }
+        }
+
+        boolean isValidImportNode() {
+            return locationNode.isTextual() && locationNode.asText() != null;
+        }
+
+        String getImportLocation() {
+            return locationNode.asText();
+        }
+
+        ObjectNode doImportTree(ConfigurationSourceProvider sourceProvider, ObjectNode importer) throws IOException, ConfigurationException {
+            if (optional && !optionalWrapExecuted) {
+                optionalWrapExecuted = true;
+                try {
+                    return mergeFromImportNode(sourceProvider, importer, this);
+                } catch (Exception e) {
+                    log.debug("Failed to read optional config {}", getImportLocation(), e);
+                    return importer;
+                }
+            } else {
+                if (processParentAndImports) {
+                    return importTree(sourceProvider, getImportLocation());
+                } else {
+                    return removeImportAndParentKeysFromConfig(readTree(sourceProvider, getImportLocation()));
+                }
+
+            }
+        }
     }
 
     static class DWConfigFactoryException extends ConfigurationException {

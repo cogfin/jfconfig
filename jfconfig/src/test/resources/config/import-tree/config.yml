@@ -1,0 +1,7 @@
+---
+get:
+  location: config/import-tree/multi-import-child.yml
+  target: simpleObject
+imageStoreFactory:
+  type: filesystem
+  directory: /var/images

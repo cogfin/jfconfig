@@ -1,0 +1,4 @@
+---
+notNullOrBlankProperty: value4
+notBlankProperty: this should be overriden by the parent config
+property1: this should be overriden by the child config

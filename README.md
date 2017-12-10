@@ -160,8 +160,6 @@ imageRepository:
 
 The imported config can be overriden by the config that imports it
 
-Imported config does not support inheritance or further imports (any parent/import keys will be removed)
-
 If the import key (default "inherits") is found in the config then the string value will be a location that will be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
 
 In the example below, loading config-with-import.yml will result in a database config object with debug set to true 
@@ -190,14 +188,13 @@ database:
 
 Advanced options can be enabled by providing a map for the import value.
 
-##### location (required)
-
-The location is required and passed to the ConfigurationSourceProvider to load
-
-##### optional (optional)
-
-If the optional key is not supplied, it defaults to false.
-If optional is true, the configuration loading will not fail if the config cannot be loaded
+|Key Name|Type|Required|Default|Description|
+|--------|----|--------|-------|-----------|
+|location|String|Yes| |location of the config to import|
+|optional|boolean|No|false|importing config with optional=true will not fail to load the configuration if the imported config cannot be read|
+|object|String|No| |import a select object from the config. dot separated path. when not specified, the whole config will be imported|
+|target|String|No| |select where to merge the imported config into the importing config. dot separated path. when not specified will merge at the root|
+|processParentAndImports|boolean|No|true|Whether to honour the parent and import keys in the config being imported|
 
 ###### config-with-optional-import.yml
 ```yaml
@@ -206,16 +203,6 @@ import:
   location: build-version.yml
   optional: true
 ```
-
-##### object (optional)
-
-object enables a section of the imported config to be loaded. the value is a dot separated path to the config to import. unless target is specified, the config will be imported to the root of the configuration
-
-See target below for an examples using object
-
-##### target (optional)
-
-target enables imported config to be relocated to somewhere other than the root of the importing configuration
 
 ### TODO - object/target example
 

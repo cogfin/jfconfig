@@ -2,6 +2,7 @@ package com.energizedwork.justConf
 
 import com.energizedwork.justConf.testSupport.NestedConfigWithDiscoverableFactories
 import com.energizedwork.justConf.testSupport.NestedConfigWithDiscoverableFactoriesInHolders
+import com.energizedwork.justConf.testSupport.NestedConfigWithSimpleConfig
 import com.energizedwork.justConf.testSupport.SimpleConfigObject
 import com.energizedwork.justConf.testSupport.WithObjectStore
 import com.energizedwork.justConf.testSupport.objectStore.MemoryObjectStoreFactory
@@ -216,7 +217,7 @@ abstract class InheritanceConfigurationSpec extends Specification {
         config.ignoredProperty == null
     }
 
-    def "import removes parent and import keys"() {
+    def "import can remove parent and import keys"() {
         given:
         SimpleConfigObject config = getConfiguration(SimpleConfigObject, "config/simple/import-removes-parent-and-import-keys.yml", "import")
 
@@ -321,6 +322,26 @@ abstract class InheritanceConfigurationSpec extends Specification {
         'component.widgetStoreFactory.table' | 'config/nested/single-file-optional-component-dependency-not-valid.yml'
     }
 
+    @Unroll
+    def "Detect and throw exception for circular references: #description"() {
+        def error = captureSysError()
+
+        when:
+        getConfiguration(SimpleConfigObject, configPath, 'import')
+
+        then:
+        thrown Exception
+        String errorOut = error.toString()
+        errorOut.toLowerCase().contains(errorMessageContains)
+        errorOut.contains(configPath)
+
+        where:
+        description                 | errorMessageContains         | configPath
+        'inheritance'               | 'circular inheritance'       | 'config/circularDependencyChecks/parent/config.yml'
+        'imports'                   | 'circular import'            | 'config/circularDependencyChecks/imports/config.yml'
+        'parents imports'           | 'circular import'            | 'config/circularDependencyChecks/imports/parents-imports-circular.yml'
+    }
+
     def "can use an alias in a parent"() {
         given:
         NestedConfigWithDiscoverableFactories config = getConfiguration(NestedConfigWithDiscoverableFactories, "config/nested/config-with-anchor.yml")
@@ -344,6 +365,18 @@ abstract class InheritanceConfigurationSpec extends Specification {
 
         expect:
         config.stuff instanceof MemoryObjectStoreFactory
+    }
+
+    def "can import a configuration and honour inheritance and imports"() {
+        given:
+        NestedConfigWithSimpleConfig config = getConfiguration(NestedConfigWithSimpleConfig, "config/import-tree/config.yml", "get")
+
+        expect:
+        config.simpleObject.property1 == 'value1'
+        config.simpleObject.notNullProperty == 'value2'
+        config.simpleObject.notBlankProperty == 'value3'
+        config.simpleObject.notNullOrBlankProperty == 'value4'
+        config.simpleObject.ignoredProperty == null
     }
 
     ByteArrayOutputStream captureSysError() {

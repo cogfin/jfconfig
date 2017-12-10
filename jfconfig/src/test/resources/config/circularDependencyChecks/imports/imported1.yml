@@ -1,0 +1,1 @@
+import: config/circularDependencyChecks/imports/imported2.yml

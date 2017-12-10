@@ -1,0 +1,3 @@
+---
+get: config/import-tree/multi-import-parent-import.yml
+notBlankProperty: value3

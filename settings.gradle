@@ -2,6 +2,7 @@ rootProject.name='justConf'
 
 include 'jfconfig'
 include 'dwtests'
+include 'dwtests:130-rc1'
 include 'dwtests:122'
 include 'dwtests:120'
 include 'dwtests:116'
