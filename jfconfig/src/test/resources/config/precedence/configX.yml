@@ -1,0 +1,7 @@
+---
+imports:
+  location: config/precedence/configY.yml
+  target: nested1
+nested1:
+  property1: not overriden by X
+  property2: set in X

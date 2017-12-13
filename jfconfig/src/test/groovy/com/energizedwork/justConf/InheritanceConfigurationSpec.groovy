@@ -1,5 +1,6 @@
 package com.energizedwork.justConf
 
+import com.energizedwork.justConf.testSupport.BoringConfigObject
 import com.energizedwork.justConf.testSupport.NestedConfigWithDiscoverableFactories
 import com.energizedwork.justConf.testSupport.NestedConfigWithDiscoverableFactoriesInHolders
 import com.energizedwork.justConf.testSupport.NestedConfigWithSimpleConfig
@@ -377,6 +378,37 @@ abstract class InheritanceConfigurationSpec extends Specification {
         config.simpleObject.notBlankProperty == 'value3'
         config.simpleObject.notNullOrBlankProperty == 'value4'
         config.simpleObject.ignoredProperty == null
+    }
+
+    def "big precedence test"() {
+        //
+        // I
+        // ^
+        // |
+        // G -> H        E -> F
+        // ^             ^
+        // |             |
+        // A     ->      B -> C
+        //                 -> D
+        BoringConfigObject config = getConfiguration(BoringConfigObject, 'config/precedence/configA.yml', 'imports')
+
+        expect:
+        config.property1 == 'set in A'
+        config.property2 == 'set in B'
+        config.property3 == 'set in C'
+        config.property4 == 'set in D'
+        config.property5 == 'set in E'
+        config.property6 == 'set in F'
+        config.property7 == 'set in G'
+        config.property8 == 'set in H'
+        config.property9 == 'set in I'
+
+        config.nested1.property1 == 'set in A'
+        config.nested1.property2 == 'set in X'
+        config.nested1.property3 == 'set in Y'
+
+        config.nested2.property1 == 'set in A'
+        config.nested2.property2 == 'set in ZZ'
     }
 
     ByteArrayOutputStream captureSysError() {

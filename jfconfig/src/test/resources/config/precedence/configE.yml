@@ -1,0 +1,15 @@
+---
+# I
+# ^
+# |
+# G -> H        E -> F
+# ^             ^
+# |             |
+# A     ->      B -> C
+#                 -> D
+imports: config/precedence/configF.yml
+property1: not overriden by E
+property2: not overriden by E
+property3: not overriden by E
+property4: not overriden by E
+property5: set in E

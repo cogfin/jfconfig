@@ -1,0 +1,4 @@
+---
+property1: not overriden by Y
+property2: not overriden by Y
+property3: set in Y

@@ -1,0 +1,19 @@
+---
+# I
+# ^
+# |
+# G -> H        E -> F
+# ^             ^
+# |             |
+# A     ->      B -> C
+#                 -> D
+inherits: config/precedence/configG.yml
+imports:
+  - config/precedence/configB.yml
+  - config/precedence/configX.yml
+  - config/precedence/configZ.yml
+property1: set in A
+nested1:
+  property1: set in A
+nested2:
+  property1: set in A

@@ -1,0 +1,12 @@
+---
+# I
+# ^
+# |
+# G -> H        E -> F
+# ^             ^
+# |             |
+# A     ->      B -> C
+#                 -> D
+property1: not overriden by C
+property2: not overriden by C
+property3: set in C

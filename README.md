@@ -259,7 +259,7 @@ password: ${MYAPP_PASSWORD:-}
 
 ### Disabling environment variable substitution
  
-Environment variable substitution can be disabled by using a method in JFConfig that takes a ConfigurationSourceProvider
+Disable environment variable substitution by using a method in JFConfig that takes a ConfigurationSourceProvider
 
 ###### Load config from classpath without environment variable substitution
 ```groovy

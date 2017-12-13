@@ -1,0 +1,3 @@
+---
+property1: not overridden by ZZ
+property2: set in ZZ

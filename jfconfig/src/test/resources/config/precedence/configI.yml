@@ -1,0 +1,18 @@
+---
+# I
+# ^
+# |
+# G -> H        E -> F
+# ^             ^
+# |             |
+# A     ->      B -> C
+#                 -> D
+property1: not overriden by I
+property2: not overriden by I
+property3: not overriden by I
+property4: not overriden by I
+property5: not overriden by I
+property6: not overriden by I
+property7: not overriden by I
+property8: not overriden by I
+property9: set in I

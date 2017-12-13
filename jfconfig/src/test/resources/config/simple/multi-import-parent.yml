@@ -1,3 +1,4 @@
 ---
 get: config/simple/multi-import-parent-import.yml
 notBlankProperty: value3
+notNullProperty: will not override property set in child import

@@ -1,0 +1,4 @@
+---
+imports:
+  location: config/precedence/configZZ.yml
+  target: nested2
