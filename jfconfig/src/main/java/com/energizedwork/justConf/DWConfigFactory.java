@@ -177,7 +177,7 @@ public class DWConfigFactory<T> extends BaseConfigurationFactory<T> {
                 throw new DWConfigFactoryException("Circular import", fileInError, configPaths);
             }
             List<String> originalConfigPaths = new LinkedList<>(configPaths);
-                    ObjectNode in = null;
+            ObjectNode in = null;
             try {
                 in = importConfig.doImportTree(sourceProvider, importer);
             } catch (DWConfigFactoryException cfe) {
