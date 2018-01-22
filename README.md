@@ -1,8 +1,13 @@
 # JFConfig: Just configure
 
-**Create and validate configuration objects from YAML with inheritance and imports**
+An opinionated configuration library based on the dropwizard-configuration project for use in any JVM project
 
-**Override configuration using and external configuration file, system properties and environment variables**
+**Create and validate configuration objects from YAML with inheritance and imports** - create configurations for different deployment environments
+
+**Override configuration using environment variables, system properties and/or external configuration file** - enable/require sys admin / configuration management to set or override config
+
+**100% java implementation** - for compatibility with your favourite JVM language 
+
 
 ## Javadoc
 [Latest release](https://javadoc.io/doc/com.energizedwork/jfconfig)
@@ -59,7 +64,7 @@ dependencies {
 }
 ```
 
-## Dropwizard
+## Dropwizard configuration 
 
 ###### MyDropwizardApp.groovy
 ```groovy
@@ -92,13 +97,13 @@ void initialize(Bootstrap<T> bootstrap) {
 
 ## Inheritance
 
-A configuration file (YAML) can inherit from another configuration file. The resulting configuration will contain the config from both files with the inheriting file taking precedence where there is duplication
+A configuration (YAML) can inherit from another configuration. The configuration that is inherited can be overriden by the inheriting config
 
 A config can only inherit from a single other config, but that config can inherit from another and there is no fixed limit to the size of the inheritance tree
  
 Inherited config supports imports in the same way as the main config
 
-If the inheritance key (default "inherits") is found in the config then it must be followed by a location that can be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the inherited config will be loaded
+When the inheritance key (default "inherits") is found in the config then it must be followed by a location that can be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the inherited config will be loaded
 
 ##### example
 
@@ -160,7 +165,7 @@ imageRepository:
 
 The imported config can be overriden by the config that imports it
 
-If the import key (default "inherits") is found in the config then the string value will be a location that will be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
+When the import key (default "import") is found in the config then the string value will be a location that will be resolved by the ConfigurationSourceProvider with which the config was loaded. The key will be removed from the config and the imported config will be loaded
 
 In the example below, loading config-with-import.yml will result in a database config object with debug set to true 
 
@@ -326,11 +331,39 @@ A utility method is provided to serialize any object to YAML. Depending on objec
 ```groovy
     static void main(String[] args) {
         String configLocation = args[0]
-        def config = JFConfig.fromClasspath(MyApplicationConfig, configLocation)
+        MyApplicationConfig config = JFConfig.fromClasspath(MyApplicationConfig, configLocation)
         JFConfig.printConfig(System.out, config)
     }
 ```
 
-### Printing config tree before validation
+### Print config tree before binding and validation with environment variable substitution
 
-### Printing config tree before validation without env var substitution
+Print the fully resolved config tree before attempting to bind to any objects
+
+**As system property overrides are applied in the dropwizard base class just prior to object binding, they will not be set before printing**
+
+###### PrintRawConfigWithEnvVarReplacement.groovy
+```groovy
+    static void main(String[] args) {
+        String configLocation = args[0]
+        ConfigurationSourceProvider sourceProvider = JFConfig.createEnvVarSubstitutingClasspathSourceProvider()
+        JFConfig.printConfigTree(System.out, sourceProvider, configLocation)
+    }
+```
+
+### Print config tree before binding and validation without env var substitution
+
+Print the fully resolved config tree before attempting to bind to any objects without replacing environment variables
+
+**As system property overrides are applied in the dropwizard base class just prior to object binding, they will not be set before printing**
+
+###### PrintRawConfigWithEnvVarReplacement.groovy
+```groovy
+    static void main(String[] args) {
+        String configLocation = args[0]
+        ConfigurationSourceProvider sourceProvider = new ResourceConfigurationSourceProvider()
+        JFConfig.printConfigTree(System.out, sourceProvider, configLocation)
+    }
+```
+
+
