@@ -346,7 +346,7 @@ Print the fully resolved config tree before attempting to bind to any objects
 ```groovy
     static void main(String[] args) {
         String configLocation = args[0]
-        ConfigurationSourceProvider sourceProvider = JFConfig.createEnvVarSubstitutingClasspathSourceProvider()
+        def sourceProvider = JFConfig.createEnvVarSubstitutingClasspathSourceProvider()
         JFConfig.printConfigTree(System.out, sourceProvider, configLocation)
     }
 ```
