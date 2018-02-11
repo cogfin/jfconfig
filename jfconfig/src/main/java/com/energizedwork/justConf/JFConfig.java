@@ -175,6 +175,7 @@ public class JFConfig {
      * @return a configuration object
      */
     public static <C> C fromSourceProvider(ConfigurationSourceProvider sourceProvider, Class<C> configClass, String configLocation, String parentKey, String importKey, File externalConfigFile, String propertyOverridePrefix) {
+        slf4j();
         try {
             DWConfigFactoryFactory<C> factoryFactory = new DWConfigFactoryFactory<C>(parentKey, importKey, propertyOverridePrefix, externalConfigFile);
             ConfigurationFactory<C> factory = factoryFactory.create(configClass, newValidatorFactory().getValidator(), newObjectMapper(), "IGNORED");
@@ -253,12 +254,23 @@ public class JFConfig {
      */
     @SuppressWarnings("unchecked")
     public static void printConfigTree(OutputStream out, ConfigurationSourceProvider sourceProvider, String configLocation, String parentKey, String importKey, File externalConfigFile) {
+        slf4j();
         try {
             DWConfigFactoryFactory<Object> factoryFactory = new DWConfigFactoryFactory<Object>(parentKey, importKey, "N/A", externalConfigFile);
             DWConfigFactory factory = (DWConfigFactory) factoryFactory.create(Object.class, newValidatorFactory().getValidator(), newObjectMapper(), "N/A");
             createYamlObjectMapper().writerWithDefaultPrettyPrinter().writeValue(out, factory.buildTree(sourceProvider, configLocation));
         } catch (Exception e) {
             throw new JFConfigException(e);
+        }
+    }
+
+    /**
+     * Deal with hibernate validator -> jboss logging
+     */
+    private static void slf4j() {
+        String jbossLoggingKey = "org.jboss.logging.provider";
+        if (System.getProperty(jbossLoggingKey) == null) {
+            System.setProperty(jbossLoggingKey, "slf4j");
         }
     }
 

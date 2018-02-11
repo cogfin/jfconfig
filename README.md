@@ -305,6 +305,8 @@ Polymorphic configuration is provided by Jackson and the dropwizard Discoverable
 
 [Polymorphic configuration in the Dropwizard documentation](http://www.dropwizard.io/1.2.2/docs/manual/configuration.html#polymorphic-configuration)
 
+[Jackson polymorphic deserialization](https://github.com/FasterXML/jackson-docs/wiki/JacksonPolymorphicDeserialization)
+
 ## YAML references (and Jackson impl)
 
 ### TODO

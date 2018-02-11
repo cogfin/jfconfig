@@ -33,12 +33,15 @@ configurations {
 dependencies {
     api 'io.dropwizard:dropwizard-configuration'
     api 'io.dropwizard:dropwizard-jackson'
-    api 'io.dropwizard:dropwizard-jersey'
+    api ('io.dropwizard:dropwizard-jersey') {
+        exclude group: 'ch.qos.logback'
+    }
     api 'javax.validation:validation-api:1.1.0.Final'
 
     testImplementation 'org.codehaus.groovy:groovy-all:2.4.12'
     testImplementation 'org.spockframework:spock-core:1.0-groovy-2.4'
     testImplementation 'io.dropwizard:dropwizard-core'
+    testImplementation 'ch.qos.logback:logback-classic:1.2.3'
 }
 
 task doc(type: Javadoc) {
