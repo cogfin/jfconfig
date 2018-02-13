@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
 # JFConfig: Just configure
 
 An opinionated configuration library based on the dropwizard-configuration project for use in any JVM project
