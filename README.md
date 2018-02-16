@@ -1,4 +1,5 @@
-[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT) [![Javadocs](https://www.javadoc.io/badge/com.energizedwork/jfconfig.svg)](https://www.javadoc.io/doc/com.energizedwork/jfconfig) [![Maven](https://maven-badges.herokuapp.com/maven-central/com.energizedwork/jfconfig/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.energizedwork/jfconfig)
+
 
 # JFConfig: Just configure
 
