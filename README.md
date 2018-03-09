@@ -312,8 +312,8 @@ The remoteService username property can be overridden by using system properties
 java -Djf-conf.remoteService.username=testUser -jar myApp.jar
 ```
 
+Map keys that contain dots need to be escaped with a backslash. Depending on how/ where you set the system override, the backslash may also need to be escaped:
 
-When you need to override map keys that contain dots, you need to escape the dot with a backslash. Depending on how/ where you set the system override, the backslash may also need to be escaped:
 ##### Set the log level for a logger in Dropwizard
 ```java
 System.setProperty("jf-conf.logging.loggers.org\\.apache\\.shiro\\.mgt", "TRACE")
