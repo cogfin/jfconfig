@@ -242,7 +242,7 @@ For the above reason, it is recommended to **always supply a default value**
 
 Default values are provided using the bash `:-` syntax, eg `${ENABLE_DEBUG:-false}` 
 
-When there is no sensible default or you require an environment variable to be supplied be supplied, then add an empty default `${ENV_VAR:-}`, which will be replaced with null (a default of empty string can be supplied with `${ENV_VAR:-""}`)
+When there is no sensible default or you require an environment variable to be supplied, add an empty default `${ENV_VAR:-}` which will be replaced with nothing (interpreted as null with the default objectMapper) - a default of empty string can be supplied with `${ENV_VAR:-""}`
 
 In the following example, the configuration will fail validation if either USE_THE_THING or MYAPP_PASSWORD is not set (additionally MYAPP_PASSWORD cannot be an empty String)
 
@@ -291,12 +291,26 @@ The external config does not support environment variable substitution.
 
 ## System property overrides
 
-Configuration properties can be overridden with system properties. This happens after the configuration has been fully resolved and mapped onto the configuration
-object, but before validation.
+Configuration properties can be overridden with system properties. This happens after the configuration has been fully resolved (imports and inheritance) but before it is mapped onto the configuration object and validated.
 
 System properties starting with the propertyOverridePrefix (default `jf-conf`) followed by a `.` and a path to a property will override that property.
  
-See the Note at the bottom of the [Configuration section in the Dropwizard manual](https://www.dropwizard.io/1.2.2/docs/manual/core.html#configuration) and substitute `dw.` with `jf-conf.` or whatever you have configured your prefix to  
+See the **note at the bottom** of the [Configuration section in the Dropwizard manual](https://www.dropwizard.io/1.2.2/docs/manual/core.html#configuration) and substitute `dw.` with `jf-conf.` or whatever you have configured your prefix to
+
+##### example
+
+###### config.yml
+```yaml
+remoteService:
+  username: appUser
+  password: ${REMOTE_SERVICE_PASSWORD:-}
+```
+
+The remoteService username property can be overridden by using system properties
+
+```sh
+java -Djf-conf.remoteService.username=testUser -jar myApp.jar
+```
 
 ## Validation
 
