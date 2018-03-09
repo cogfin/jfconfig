@@ -1,7 +1,7 @@
 
 dependencyManagement {
     imports {
-        mavenBom 'io.dropwizard:dropwizard-bom:1.1.6'
+        mavenBom 'io.dropwizard:dropwizard-bom:1.2.4'
     }
 }
 
