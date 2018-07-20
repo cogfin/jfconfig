@@ -119,7 +119,7 @@ uploadArchives {
             pom.project {
                 name 'JFConfig'
                 description 'Simple validated configuration loading'
-                url 'https://github.com/energizedwork/justConf'
+                url 'https://github.com/cogfin/jfconfig'
                 licenses {
                     license {
                         name 'The MIT License'
@@ -129,16 +129,16 @@ uploadArchives {
                 }
                 developers {
                     developer {
-                        name 'Anthony Robinson'
-                        email 'tony@energizedwork.com'
-                        organization = 'Energized Work'
-                        organizationUrl 'https://www.energizedwork.com/'
+                        name 'Cogfin Dev'
+                        email 'gh@cogfin.uk'
+                        organization = 'Cogfin'
+                        organizationUrl 'https://github.com/cogfin/'
                     }
                 }
                 scm {
-                    connection 'scm:git:git://github.com/energizedwork/justConf.git'
-                    developerConnection 'scm:git:ssh://github.com:energizedwork/justConf.git'
-                    url 'https://github.com/energizedwork/justConf'
+                    connection 'scm:git:git://github.com/cogfin/jfconfig.git'
+                    developerConnection 'scm:git:ssh://github.com:cogfin/jfconfig.git'
+                    url 'https://github.com/cogfin/jfconfig'
                 }
             }
         }
