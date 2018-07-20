@@ -1,9 +1,9 @@
-[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT) [![Javadocs](https://www.javadoc.io/badge/com.energizedwork/jfconfig.svg)](https://www.javadoc.io/doc/com.energizedwork/jfconfig) [![Maven](https://maven-badges.herokuapp.com/maven-central/com.energizedwork/jfconfig/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.energizedwork/jfconfig)
+[![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT) [![Javadocs](https://www.javadoc.io/badge/uk.cogfin/jfconfig.svg)](https://www.javadoc.io/doc/uk.cogfin/jfconfig) [![Maven](https://maven-badges.herokuapp.com/maven-central/uk.cogfin/jfconfig/badge.svg)](https://maven-badges.herokuapp.com/maven-central/uk.cogfin/jfconfig)
 
 
 # JFConfig: Just configure
 
-An opinionated configuration library based on the dropwizard-configuration project for use in any JVM project
+A dropwizard configuration factory to enable inheritance and imports from yaml config files and some utility methods to make it easy to configure any JVM application.
 
 **Create and validate configuration objects from YAML with inheritance and imports** - create configurations for different deployment environments
 
@@ -13,7 +13,7 @@ An opinionated configuration library based on the dropwizard-configuration proje
 
 
 ## Javadoc
-[Latest release](https://javadoc.io/doc/com.energizedwork/jfconfig)
+[Latest release](https://javadoc.io/doc/uk.cogfin/jfconfig)
 
 ## Standalone (1 line) configuration
 
@@ -61,7 +61,7 @@ myCredentials:
 ###### build.gradle
 ```gradle
 dependencies {
-    compile "com.energizedwork:jfconfig:${jfconfigVersion}"
+    compile "uk.cogfin:jfconfig:${jfconfigVersion}"
     
     ....
 }
